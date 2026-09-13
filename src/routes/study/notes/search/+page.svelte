@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { page as routePage } from "$app/stores";
   import { pluginInvoke } from "$lib/plugin-invoke";
+  import { escapeHtml } from "$lib/sanitize";
 
   type SearchHit = {
     block_id: number;
@@ -96,7 +97,10 @@
   }
 
   function highlightSnippet(s: string): string {
-    return s.replace(/<<(.*?)>>/g, "<mark>$1</mark>");
+    return s
+      .split(/<<(.*?)>>/g)
+      .map((part, i) => (i % 2 === 1 ? `<mark>${escapeHtml(part)}</mark>` : escapeHtml(part)))
+      .join("");
   }
 
   onMount(async () => {

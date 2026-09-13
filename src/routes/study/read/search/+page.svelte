@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { pluginInvoke } from "$lib/plugin-invoke";
+  import { escapeHtml } from "$lib/sanitize";
   import PageHero from "$lib/study-components/PageHero.svelte";
 
   type SearchResult = {
@@ -82,10 +83,13 @@
   }
 
   function highlight(text: string, q: string): string {
-    if (!q.trim()) return text;
+    if (!q.trim()) return escapeHtml(text);
     const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(`(${safeQ})`, "gi");
-    return text.replace(re, "<mark>$1</mark>");
+    return text
+      .split(re)
+      .map((part, i) => (i % 2 === 1 ? `<mark>${escapeHtml(part)}</mark>` : escapeHtml(part)))
+      .join("");
   }
 
   function fmtDate(secs: number): string {
