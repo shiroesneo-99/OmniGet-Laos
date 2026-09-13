@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t } from "$lib/i18n";
+  import { openExternalUrl } from "$lib/open";
 
   type Props = {
     variant?: "footer" | "inline" | "card";
@@ -12,8 +13,7 @@
 
   async function open() {
     try {
-      const { openUrl } = await import("@tauri-apps/plugin-opener");
-      await openUrl(url);
+      await openExternalUrl(url);
     } catch {
       try {
         window.open(url, "_blank");

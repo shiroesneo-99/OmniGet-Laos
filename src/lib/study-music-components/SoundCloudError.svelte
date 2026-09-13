@@ -1,5 +1,6 @@
 <script lang="ts">
   import { studySoundcloudHumanizeError } from "$lib/study-bridge";
+  import { openExternalUrl, safeExternalUrl } from "$lib/open";
 
   type Props = {
     error: string;
@@ -20,10 +21,10 @@
   async function openInSoundcloud() {
     if (!trackUrl) return;
     try {
-      const { openUrl } = await import("@tauri-apps/plugin-opener");
-      await openUrl(trackUrl);
+      await openExternalUrl(trackUrl);
     } catch {
-      window.open(trackUrl, "_blank", "noopener,noreferrer");
+      const safe = safeExternalUrl(trackUrl);
+      if (safe) window.open(safe, "_blank", "noopener,noreferrer");
     }
   }
 

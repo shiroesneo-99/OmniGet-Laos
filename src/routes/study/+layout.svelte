@@ -25,6 +25,7 @@
   import { musicTheme } from "$lib/study-music/theme-store.svelte";
   import { playlistsStore } from "$lib/study-music/playlists-store.svelte";
   import { showToast } from "$lib/stores/toast-store.svelte";
+  import { revealPath } from "$lib/open";
   import PlayerBar from "$lib/study-music-components/PlayerBar.svelte";
   import RightBar from "$lib/study-music-components/RightBar.svelte";
   import AddToPlaylistDialog from "$lib/study-music-components/AddToPlaylistDialog.svelte";
@@ -590,8 +591,7 @@
     } else if (id === "show") {
       void (async () => {
         try {
-          const { revealItemInDir } = await import("@tauri-apps/plugin-opener");
-          await revealItemInDir(tr.path);
+          await revealPath(tr.path);
         } catch {
           showToast("error", $t("study.music.ctx_show_failed") as string);
         }

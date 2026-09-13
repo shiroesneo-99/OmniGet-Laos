@@ -8,6 +8,7 @@
   import { onMount } from "svelte";
   import { t } from "$lib/i18n";
   import { showToast } from "$lib/stores/toast-store.svelte";
+  import { openUrl } from "$lib/tools/rt";
 
   type ThemeInfo = { name: string; schemes: string[] };
   type Status = {
@@ -86,14 +87,7 @@
   const removeAddon = (kind: "extension" | "custom_app", name: string) =>
     runAction(`remove:${name}`, () => invoke("spicetify_remove_addon", { kind, name }));
 
-  async function openSpotifyDownload() {
-    try {
-      const { openUrl } = await import("@tauri-apps/plugin-opener");
-      await openUrl("https://www.spotify.com/download/");
-    } catch (e) {
-      showToast("error", errText(e));
-    }
-  }
+  const openSpotifyDownload = () => openUrl("https://www.spotify.com/download/");
 
   function onThemeChange() {
     schemeSel = schemes[0] ?? "";

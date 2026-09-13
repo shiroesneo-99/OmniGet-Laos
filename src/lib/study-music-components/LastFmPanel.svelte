@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { pluginInvoke } from "$lib/plugin-invoke";
   import { showToast } from "$lib/stores/toast-store.svelte";
+  import { openExternalUrl } from "$lib/open";
   import { t } from "$lib/i18n";
 
   type Status = {
@@ -71,8 +72,7 @@
       pendingToken = res.token;
       pendingAuthUrl = res.auth_url;
       try {
-        const { openUrl } = await import("@tauri-apps/plugin-opener");
-        await openUrl(res.auth_url);
+        await openExternalUrl(res.auth_url);
       } catch {
         /* user can click link */
       }

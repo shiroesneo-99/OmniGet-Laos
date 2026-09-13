@@ -4,6 +4,8 @@
  * componente pequeno; o que se repete mora aqui.
  */
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { openExternalUrl, openLocalPath, revealPath } from "$lib/open";
+import { showToast } from "$lib/stores/toast-store.svelte";
 
 export type ToolProgress = {
   id: string;
@@ -54,19 +56,27 @@ export async function saveAs(defaultPath?: string, filters?: Filter[]): Promise<
   return typeof r === "string" ? r : null;
 }
 
-export async function reveal(path: string): Promise<void> {
-  const { revealItemInDir } = await import("@tauri-apps/plugin-opener");
-  await revealItemInDir(path);
+// Os três helpers abaixo nunca rejeitam: a maioria das chamadas é um
+// `onclick` solto, e as que usam `await` logo após salvar não devem mostrar
+// "erro" por causa de um Explorer que não abriu. A falha vira toast.
+async function withToast(fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } catch (e) {
+    showToast("error", errText(e));
+  }
 }
 
-export async function openPath(path: string): Promise<void> {
-  const { openPath: op } = await import("@tauri-apps/plugin-opener");
-  await op(path);
+export function reveal(path: string): Promise<void> {
+  return withToast(() => revealPath(path));
 }
 
-export async function openUrl(url: string): Promise<void> {
-  const { openUrl: ou } = await import("@tauri-apps/plugin-opener");
-  await ou(url);
+export function openPath(path: string): Promise<void> {
+  return withToast(() => openLocalPath(path));
+}
+
+export function openUrl(url: string): Promise<void> {
+  return withToast(() => openExternalUrl(url));
 }
 
 export function onToolProgress(cb: (p: ToolProgress) => void): Promise<UnlistenFn> {

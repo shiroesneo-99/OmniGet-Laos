@@ -1,5 +1,6 @@
 <script lang="ts">
   import { showToast } from "$lib/stores/toast-store.svelte";
+  import { openExternalUrl, safeExternalUrl } from "$lib/open";
   import {
     downloadStore,
     type DownloadJobState,
@@ -136,11 +137,11 @@
     if (!url) return;
     void (async () => {
       try {
-        const opener = await import("@tauri-apps/plugin-opener");
-        await opener.openUrl(url);
+        await openExternalUrl(url);
       } catch {
         try {
-          window.open(url, "_blank");
+          const safe = safeExternalUrl(url);
+          if (safe) window.open(safe, "_blank");
         } catch {
           /* ignore */
         }
