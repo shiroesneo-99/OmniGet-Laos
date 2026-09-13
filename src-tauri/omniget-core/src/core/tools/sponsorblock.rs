@@ -22,17 +22,17 @@ pub const CATEGORIES: &[&str] = &[
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Segment {
-    #[serde(rename = "UUID", default)]
+    #[serde(rename(deserialize = "UUID"), default)]
     pub uuid: String,
     pub segment: [f64; 2],
     pub category: String,
-    #[serde(rename = "actionType", default)]
+    #[serde(rename(deserialize = "actionType"), default)]
     pub action_type: String,
     #[serde(default)]
     pub votes: i64,
     #[serde(default)]
     pub locked: i64,
-    #[serde(rename = "videoDuration", default)]
+    #[serde(rename(deserialize = "videoDuration"), default)]
     pub video_duration: f64,
     #[serde(default)]
     pub description: String,
@@ -574,5 +574,40 @@ mod submit_tests {
         .await
         .expect_err("sem confirmação não sai");
         assert!(e.to_string().contains("confirme"));
+    }
+}
+
+#[cfg(test)]
+mod serde_tests {
+    use super::Segment;
+
+    #[test]
+    fn segment_reads_api_camel_case_and_writes_snake_case() {
+        let api = r#"{"segment":[1.5,20.0],"UUID":"abc123","category":"sponsor",
+            "videoDuration":212.1,"actionType":"skip","locked":1,"votes":7,
+            "description":""}"#;
+        let seg: Segment = serde_json::from_str(api).unwrap();
+        assert_eq!(seg.uuid, "abc123");
+        assert_eq!(seg.action_type, "skip");
+        assert_eq!(seg.video_duration, 212.1);
+
+        let out = serde_json::to_value(&seg).unwrap();
+        let obj = out.as_object().unwrap();
+        for key in [
+            "uuid",
+            "segment",
+            "category",
+            "action_type",
+            "votes",
+            "locked",
+            "video_duration",
+            "description",
+        ] {
+            assert!(obj.contains_key(key), "missing {key}");
+        }
+        for key in ["UUID", "actionType", "videoDuration"] {
+            assert!(!obj.contains_key(key), "unexpected {key}");
+        }
+        assert_eq!(out["uuid"], "abc123");
     }
 }
