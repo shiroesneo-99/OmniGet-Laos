@@ -310,9 +310,13 @@ struct PairResponse {
 
 /// Origins of browser extensions (Chrome/Edge, Firefox, Safari).
 fn is_extension_origin(origin: &str) -> bool {
-    ["chrome-extension://", "moz-extension://", "safari-web-extension://"]
-        .iter()
-        .any(|scheme| origin.starts_with(scheme))
+    [
+        "chrome-extension://",
+        "moz-extension://",
+        "safari-web-extension://",
+    ]
+    .iter()
+    .any(|scheme| origin.starts_with(scheme))
 }
 
 /// A browser request to `/v1/pair` from anything but an extension (a web
@@ -686,8 +690,12 @@ mod tests {
             h
         };
         assert!(pair_origin_allowed(&HeaderMap::new()));
-        assert!(pair_origin_allowed(&with_origin("chrome-extension://abcdef")));
-        assert!(pair_origin_allowed(&with_origin("moz-extension://1234-5678")));
+        assert!(pair_origin_allowed(&with_origin(
+            "chrome-extension://abcdef"
+        )));
+        assert!(pair_origin_allowed(&with_origin(
+            "moz-extension://1234-5678"
+        )));
         assert!(pair_origin_allowed(&with_origin(
             "safari-web-extension://abc"
         )));
