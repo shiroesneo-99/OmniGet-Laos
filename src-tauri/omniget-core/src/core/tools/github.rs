@@ -79,6 +79,73 @@ pub async fn asset(
     ))
 }
 
+/// Como [`asset`], mas percorre as releases recentes (mais nova primeiro) e
+/// devolve a primeira que realmente publica um asset aceito por `pick`.
+/// Serve para repos cuja "latest" às vezes sai sem binários (whisper.cpp
+/// v1.9.4). Releases estáveis têm preferência; pre-releases só entram se
+/// nenhuma estável recente tiver o asset. Drafts são ignorados.
+pub async fn asset_from_recent(
+    client: &reqwest::Client,
+    repo: &str,
+    pick: impl Fn(&str) -> bool,
+) -> anyhow::Result<ReleaseAsset> {
+    let url = format!("https://api.github.com/repos/{}/releases?per_page=20", repo);
+    let response = client.get(&url).send().await?;
+    if !response.status().is_success() {
+        return Err(anyhow!(
+            "nao foi possivel consultar releases de {}: HTTP {}",
+            repo,
+            response.status()
+        ));
+    }
+    let json: serde_json::Value = response.json().await?;
+    let releases = json
+        .as_array()
+        .ok_or_else(|| anyhow!("resposta inesperada da API de releases de {}", repo))?;
+    pick_from_releases(releases, &pick).ok_or_else(|| {
+        anyhow!(
+            "nenhuma release recente de {} tem um asset para este sistema",
+            repo
+        )
+    })
+}
+
+fn pick_from_releases(
+    releases: &[serde_json::Value],
+    pick: &impl Fn(&str) -> bool,
+) -> Option<ReleaseAsset> {
+    for allow_pre in [false, true] {
+        for r in releases {
+            if r["draft"].as_bool().unwrap_or(false) {
+                continue;
+            }
+            if r["prerelease"].as_bool().unwrap_or(false) != allow_pre {
+                continue;
+            }
+            let tag = r["tag_name"].as_str().unwrap_or("");
+            let Some(assets) = r["assets"].as_array() else {
+                continue;
+            };
+            for a in assets {
+                let name = a["name"].as_str().unwrap_or("");
+                let url = a["browser_download_url"].as_str().unwrap_or("");
+                if pick(name) && !url.is_empty() {
+                    return Some(ReleaseAsset {
+                        tag: tag.to_string(),
+                        name: name.to_string(),
+                        url: url.to_string(),
+                        size: a["size"].as_u64().unwrap_or(0),
+                        digest: a["digest"]
+                            .as_str()
+                            .and_then(integrity::parse_github_digest),
+                    });
+                }
+            }
+        }
+    }
+    None
+}
+
 /// Baixa e confere o hash. Sem digest na API o download é aceito só se
 /// `allow_unverified` (repos antigos não publicam digest).
 pub async fn download(
@@ -214,3 +281,38 @@ pub async fn strip_quarantine(dir: &Path) {
 
 #[cfg(not(target_os = "macos"))]
 pub async fn strip_quarantine(_dir: &Path) {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn skips_empty_latest_and_prefers_stable() {
+        let digest = format!("sha256:{}", "ab".repeat(32));
+        let releases: Vec<serde_json::Value> = serde_json::from_value(serde_json::json!([
+            {"tag_name": "v1.9.4", "draft": false, "prerelease": false, "assets": []},
+            {"tag_name": "b5130", "draft": false, "prerelease": true, "assets": [
+                {"name": "whisper-bin-x64.zip", "browser_download_url": "https://x/b5130.zip", "size": 1}
+            ]},
+            {"tag_name": "v9.9.9", "draft": true, "prerelease": false, "assets": [
+                {"name": "whisper-bin-x64.zip", "browser_download_url": "https://x/draft.zip", "size": 1}
+            ]},
+            {"tag_name": "v1.9.2", "draft": false, "prerelease": false, "assets": [
+                {"name": "whisper-bin-ubuntu-x64.tar.gz", "browser_download_url": "https://x/u.tgz", "size": 2},
+                {"name": "whisper-bin-x64.zip", "browser_download_url": "https://x/192.zip", "size": 3, "digest": digest}
+            ]}
+        ]))
+        .unwrap();
+        let a = pick_from_releases(&releases, &|n: &str| n == "whisper-bin-x64.zip").unwrap();
+        assert_eq!(a.tag, "v1.9.2");
+        assert_eq!(a.url, "https://x/192.zip");
+        assert!(a.digest.is_some());
+
+        // Sem estável com o asset, cai para a pre-release.
+        let a = pick_from_releases(&releases, &|n: &str| n == "whisper-bin-Win32.zip");
+        assert!(a.is_none());
+        let only_pre = &releases[..2];
+        let a = pick_from_releases(only_pre, &|n: &str| n == "whisper-bin-x64.zip").unwrap();
+        assert_eq!(a.tag, "b5130");
+    }
+}

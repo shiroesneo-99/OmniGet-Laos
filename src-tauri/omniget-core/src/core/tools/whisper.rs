@@ -209,7 +209,9 @@ pub async fn install(variant: &str, progress: ProgressFn) -> anyhow::Result<Path
     let name = asset_name(variant)?;
     let dir = managed_dir().ok_or_else(|| anyhow!("Could not determine data directory"))?;
     let client = github::client()?;
-    let asset = github::asset(&client, REPO, None, |n| n == name).await?;
+    // A "latest" do whisper.cpp às vezes sai sem binários (v1.9.4); procura a
+    // release recente mais nova que publica o pacote deste sistema.
+    let asset = github::asset_from_recent(&client, REPO, |n| n == name).await?;
     tracing::info!("[whisper] baixando {} ({})", asset.name, asset.tag);
     let data = github::download(&client, &asset, false, &progress, "whisper-cli").await?;
     let staging = dir.with_extension("new");
@@ -432,6 +434,34 @@ pub async fn transcribe(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Rede real: resolve a release com binário, baixa, confere sha256 e
+    /// desempacota numa pasta temporária (não mexe na instalação gerenciada).
+    #[tokio::test]
+    #[ignore]
+    async fn live_resolves_installable_release() {
+        let Ok(name) = asset_name("cpu") else {
+            return;
+        };
+        let client = github::client().unwrap();
+        let asset = github::asset_from_recent(&client, REPO, |n| n == name)
+            .await
+            .unwrap();
+        println!(
+            "{} {} {} bytes digest={:?}",
+            asset.tag, asset.name, asset.size, asset.digest
+        );
+        assert!(asset.digest.is_some());
+        let data = github::download(&client, &asset, false, &super::super::noop_progress(), "t")
+            .await
+            .unwrap();
+        let dir = std::env::temp_dir().join(format!("omniget-whisper-{}", uuid::Uuid::new_v4()));
+        github::unpack(&data, &asset.name, &dir).unwrap();
+        let exe = github::find_file(&dir, &bin_name("whisper-cli"));
+        println!("whisper-cli: {:?}", exe);
+        assert!(exe.is_some());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn parses_whisper_json() {
