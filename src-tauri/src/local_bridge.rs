@@ -35,7 +35,7 @@ use serde::{Deserialize, Serialize};
 use socket2::{Domain, Protocol, Socket, Type};
 use tauri::{AppHandle, Emitter};
 use tokio::net::TcpListener;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 
 use crate::extension_storage::{
     cookie_limit, write_extension_metadata, ExtensionCookie, ExtensionPayload,
@@ -204,10 +204,12 @@ pub async fn spawn(app: AppHandle) {
     };
 
     let cors = CorsLayer::new()
-        // The token is the actual auth boundary, so we accept any browser
-        // origin (extension or webpage). Requests without a valid bearer are
-        // still rejected by the handler.
-        .allow_origin(Any)
+        // Only browser extensions may read responses. Web pages must not:
+        // `/v1/pair` hands out the token while the pairing window is open.
+        // Non-browser clients (MCP) send no Origin and are unaffected.
+        .allow_origin(AllowOrigin::predicate(|origin, _parts| {
+            origin.to_str().map(is_extension_origin).unwrap_or(false)
+        }))
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(Any);
 
@@ -306,7 +308,36 @@ struct PairResponse {
     token: Option<String>,
 }
 
+/// Origins of browser extensions (Chrome/Edge, Firefox, Safari).
+fn is_extension_origin(origin: &str) -> bool {
+    ["chrome-extension://", "moz-extension://", "safari-web-extension://"]
+        .iter()
+        .any(|scheme| origin.starts_with(scheme))
+}
+
+/// A browser request to `/v1/pair` from anything but an extension (a web
+/// page, or a sandboxed `null` origin) is refused before it can consume the
+/// single-use pairing window. Requests without an Origin header (the
+/// extension's background fetch may omit it) are still allowed.
+fn pair_origin_allowed(headers: &HeaderMap) -> bool {
+    match headers.get("origin") {
+        None => true,
+        Some(value) => value.to_str().map(is_extension_origin).unwrap_or(false),
+    }
+}
+
 async fn pair(State(state): State<BridgeState>, headers: HeaderMap) -> Response {
+    if !pair_origin_allowed(&headers) {
+        tracing::warn!("[bridge] /v1/pair refused for non-extension Origin");
+        return (
+            StatusCode::FORBIDDEN,
+            Json(PairResponse {
+                ok: false,
+                token: None,
+            }),
+        )
+            .into_response();
+    }
     if !pairing_open() {
         return (
             StatusCode::FORBIDDEN,
@@ -645,6 +676,24 @@ mod tests {
     fn check_bearer_rejects_missing_scheme_prefix() {
         let headers = header_with_auth("abc");
         assert!(!check_bearer(&headers, "abc"));
+    }
+
+    #[test]
+    fn pair_origin_only_allows_extensions_or_no_origin() {
+        let with_origin = |o: &str| {
+            let mut h = HeaderMap::new();
+            h.insert("origin", HeaderValue::from_str(o).unwrap());
+            h
+        };
+        assert!(pair_origin_allowed(&HeaderMap::new()));
+        assert!(pair_origin_allowed(&with_origin("chrome-extension://abcdef")));
+        assert!(pair_origin_allowed(&with_origin("moz-extension://1234-5678")));
+        assert!(pair_origin_allowed(&with_origin(
+            "safari-web-extension://abc"
+        )));
+        assert!(!pair_origin_allowed(&with_origin("https://evil.example")));
+        assert!(!pair_origin_allowed(&with_origin("http://127.0.0.1:5173")));
+        assert!(!pair_origin_allowed(&with_origin("null")));
     }
 
     #[test]
