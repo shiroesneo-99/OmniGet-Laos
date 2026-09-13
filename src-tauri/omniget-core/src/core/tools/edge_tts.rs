@@ -15,15 +15,37 @@ use crate::core::subtitle_merge::{cues_to_srt, Cue};
 
 const TRUSTED_CLIENT_TOKEN: &str = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
 const BASE_URL: &str = "speech.platform.bing.com/consumer/speech/synthesize/readaloud";
-const CHROMIUM_FULL_VERSION: &str = "130.0.2849.68";
+/// Versão do Edge que o serviço aceita. O servidor recusa (HTTP 403) clientes
+/// com versão muito antiga; acompanhar `constants.py` do rany2/edge-tts.
+const CHROMIUM_FULL_VERSION: &str = "143.0.3650.75";
 const WIN_EPOCH: u64 = 11_644_473_600;
 /// Limite conservador de bytes de texto por requisição (o edge-tts calcula
 /// a partir do cabeçalho; 3 000 bytes fica bem abaixo do teto).
 const CHUNK_BYTES: usize = 3000;
+const REJECTED_MSG: &str = "Edge TTS: o servico recusou a conexao (HTTP 403). A versao de cliente do Edge usada pelo OmniGet provavelmente foi rejeitada pela Microsoft (ou o relogio do sistema esta errado); atualize o OmniGet";
 
 fn chromium_major() -> &'static str {
-    CHROMIUM_FULL_VERSION.split('.').next().unwrap_or("130")
+    CHROMIUM_FULL_VERSION.split('.').next().unwrap_or("143")
 }
+
+fn user_agent() -> String {
+    format!(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{0}.0.0.0 Safari/537.36 Edg/{0}.0.0.0",
+        chromium_major()
+    )
+}
+
+/// Erro de handshake que sinaliza rejeição (403), tratável com nova tentativa.
+#[derive(Debug)]
+struct Forbidden;
+
+impl std::fmt::Display for Forbidden {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(REJECTED_MSG)
+    }
+}
+
+impl std::error::Error for Forbidden {}
 
 /// `Sec-MS-GEC`: SHA-256 de (ticks Windows arredondados a 5 min + token).
 fn sec_ms_gec(clock_skew_secs: i64) -> String {
@@ -85,9 +107,13 @@ pub async fn list_voices() -> anyhow::Result<Vec<Voice>> {
             ),
         )
         .header("Sec-CH-UA-Mobile", "?0")
+        .header("User-Agent", user_agent())
         .header("Accept", "*/*")
         .send()
         .await?;
+    if resp.status() == reqwest::StatusCode::FORBIDDEN {
+        return Err(anyhow!(REJECTED_MSG));
+    }
     if !resp.status().is_success() {
         return Err(anyhow!(
             "lista de vozes do Edge indisponivel: HTTP {}",
@@ -241,18 +267,17 @@ async fn synth_chunk(text: &str, opts: &TtsOptions, skew: i64) -> anyhow::Result
     );
     h.insert("Accept-Encoding", "gzip, deflate, br".parse()?);
     h.insert("Accept-Language", "en-US,en;q=0.9".parse()?);
-    h.insert(
-        "User-Agent",
-        format!(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{}.0.0.0 Safari/537.36 Edg/{}.0.0.0",
-            chromium_major(),
-            chromium_major()
-        )
-        .parse()?,
-    );
+    h.insert("User-Agent", user_agent().parse()?);
     let (mut ws, _) = tokio_tungstenite::connect_async(req)
         .await
-        .map_err(|e| anyhow!("Edge TTS: conexao recusada ({})", e))?;
+        .map_err(|e| match &e {
+            tokio_tungstenite::tungstenite::Error::Http(resp)
+                if resp.status() == tokio_tungstenite::tungstenite::http::StatusCode::FORBIDDEN =>
+            {
+                anyhow::Error::new(Forbidden)
+            }
+            _ => anyhow!("Edge TTS: conexao recusada ({})", e),
+        })?;
 
     let cfg = format!(
         "X-Timestamp:{}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{{\"context\":{{\"synthesis\":{{\"audio\":{{\"metadataoptions\":{{\"sentenceBoundaryEnabled\":\"false\",\"wordBoundaryEnabled\":\"true\"}},\"outputFormat\":\"audio-24khz-48kbitrate-mono-mp3\"}}}}}}}}\r\n",
@@ -384,8 +409,8 @@ pub async fn synthesize(
             Err(e) => {
                 // 403 por relógio fora: o edge-tts corrige lendo o header Date; aqui
                 // tentamos uma vez com deslocamento de 5 min para frente e para trás.
-                let msg = e.to_string();
-                if msg.contains("403") || msg.contains("recusada") {
+                // Se continuar 403, o erro final explica que a versão foi recusada.
+                if e.downcast_ref::<Forbidden>().is_some() {
                     skew = if skew == 0 { 300 } else { -300 };
                     synth_chunk(chunk, &opts, skew).await?
                 } else {
@@ -468,6 +493,39 @@ mod tests {
         let cues = words_to_cues(&words);
         assert_eq!(cues.len(), 3);
         assert_eq!(cues[0].start_ms, 0);
+    }
+
+    /// Rede real: `cargo test -p omniget-core --lib edge_tts -- --ignored --nocapture`
+    #[tokio::test]
+    #[ignore]
+    async fn live_synthesizes_lao_and_english() {
+        let dir = std::env::temp_dir().join(format!("omniget-tts-{}", connect_id()));
+        for (text, voice) in [
+            ("ສະບາຍດີ", "lo-LA-KeomanyNeural"),
+            ("Hello from OmniGet.", "en-US-AriaNeural"),
+        ] {
+            let path = dir.join(format!("{}.mp3", voice));
+            let res = synthesize(
+                TtsOptions {
+                    text: text.into(),
+                    voice: voice.into(),
+                    rate: default_pct(),
+                    pitch: default_hz(),
+                    volume: default_pct(),
+                },
+                &path,
+                super::super::noop_progress(),
+            )
+            .await
+            .unwrap_or_else(|e| panic!("{}: {}", voice, e));
+            let size = std::fs::metadata(&path).unwrap().len();
+            println!(
+                "{} -> {} bytes, {} words, {} ms",
+                voice, size, res.words, res.duration_ms
+            );
+            assert!(size > 1000, "audio vazio para {}", voice);
+        }
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
