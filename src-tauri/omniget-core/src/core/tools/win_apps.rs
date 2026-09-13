@@ -166,6 +166,16 @@ fn suggestion(name: &str) -> Option<&'static str> {
         .map(|(_, label)| *label)
 }
 
+/// Nomes de pacote Appx só usam `[A-Za-z0-9.-]`. Qualquer outra coisa vinda
+/// do webview é recusada antes de entrar num script do PowerShell (que também
+/// fecha aspas simples com as tipográficas U+2018..U+201B).
+fn is_valid_package_name(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
+}
+
 async fn powershell(script: &str) -> anyhow::Result<String> {
     let o = crate::core::process::command("powershell")
         .args([
@@ -281,7 +291,11 @@ pub async fn remove(
             r.failed.push(format!("{}: protegido", name));
             continue;
         }
-        let safe = name.replace('\'', "");
+        if !is_valid_package_name(name) {
+            r.failed.push(format!("{}: nome invalido", name));
+            continue;
+        }
+        let safe = name.as_str();
         let mut script = format!(
             "Get-AppxPackage -Name '{}' | Remove-AppxPackage -ErrorAction Stop",
             safe
@@ -301,7 +315,10 @@ pub async fn remove(
 /// Tenta registrar de novo um pacote removido (só funciona enquanto os
 /// arquivos ainda existem em WindowsApps); senão, o caminho é a Store.
 pub async fn restore(name: &str) -> anyhow::Result<()> {
-    let safe = name.replace('\'', "");
+    if !is_valid_package_name(name) {
+        return Err(anyhow!("nome de pacote invalido: {}", name));
+    }
+    let safe = name;
     powershell(&format!(
         "Get-AppxPackage -AllUsers -Name '{}' | ForEach-Object {{ Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\\AppXManifest.xml\" -ErrorAction Stop }}",
         safe
@@ -325,5 +342,10 @@ mod tests {
         );
         assert_eq!(suggestion("king.com.CandyCrushSaga"), Some("Candy Crush"));
         assert!(suggestion("Contoso.App").is_none());
+        assert!(is_valid_package_name("Microsoft.BingNews"));
+        assert!(is_valid_package_name("king.com.CandyCrushSaga"));
+        assert!(!is_valid_package_name("x\u{2019}; calc; \u{2019}"));
+        assert!(!is_valid_package_name("a' ; calc"));
+        assert!(!is_valid_package_name(""));
     }
 }

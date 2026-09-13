@@ -1544,6 +1544,11 @@ pub async fn reveal_file(path: String) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
+        // `"` is not valid in Windows paths; refusing it keeps the path from
+        // breaking out of the quoted raw argument below.
+        if path.contains('"') {
+            return Err("Invalid path".to_string());
+        }
         std::process::Command::new("explorer")
             .raw_arg(format!("/select,\"{}\"", path))
             .spawn()
@@ -1666,14 +1671,22 @@ pub async fn reveal_file(path: String) -> Result<(), String> {
 #[cfg(not(target_os = "android"))]
 #[tauri::command]
 pub async fn open_path_default(path: String) -> Result<(), String> {
+    // Never route the path through `cmd /c start`: cmd re-parses it, so a
+    // filename containing `&`, `^` or `%` would run arbitrary commands.
     #[cfg(target_os = "windows")]
     {
-        use std::os::windows::process::CommandExt;
-        std::process::Command::new("cmd")
-            .args(["/c", "start", "", &path])
-            .creation_flags(0x08000000)
-            .spawn()
-            .map_err(|e| e.to_string())?;
+        if std::path::Path::new(&path).is_dir() {
+            // Explorer opens the folder itself; ShellExecute-based openers
+            // would open its parent with the folder selected instead.
+            std::process::Command::new("explorer")
+                .arg(&path)
+                .spawn()
+                .map_err(|e| e.to_string())?;
+        } else {
+            // ShellExecuteExW (open's `shellexecute-on-windows` feature):
+            // no shell involved.
+            open::that_detached(&path).map_err(|e| e.to_string())?;
+        }
     }
 
     #[cfg(target_os = "macos")]

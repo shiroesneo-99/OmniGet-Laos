@@ -151,11 +151,16 @@ async fn copy_file_linux(path: &str) -> anyhow::Result<()> {
 
 #[cfg(target_os = "windows")]
 async fn copy_file_windows(path: &str) -> anyhow::Result<()> {
-    let ps_script = format!("Set-Clipboard -LiteralPath '{}'", path.replace('\'', "''"));
+    // Pass the path through the environment instead of splicing it into the
+    // script: PowerShell also closes '...' on typographic quotes (U+2018..201B),
+    // so escaping only ASCII `'` is not enough to prevent injection.
+    let ps_script = "Set-Clipboard -LiteralPath $env:OMNIGET_CLIPBOARD_PATH";
+    let env_path = path.to_string();
 
     let output = tokio::task::spawn_blocking(move || {
         crate::core::process::std_command("powershell")
-            .args(["-NoProfile", "-NonInteractive", "-Command", &ps_script])
+            .env("OMNIGET_CLIPBOARD_PATH", &env_path)
+            .args(["-NoProfile", "-NonInteractive", "-Command", ps_script])
             .output()
     })
     .await
