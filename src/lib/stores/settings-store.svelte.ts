@@ -136,6 +136,10 @@ export type AppSettings = {
     disable_haptics?: boolean;
   };
   typography?: TypographySettings;
+  plugins?: {
+    auto_install_defaults?: boolean;
+    auto_update?: boolean;
+  };
 };
 
 export type OmnidiscVoiceSettings = {

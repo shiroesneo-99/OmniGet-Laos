@@ -3998,6 +3998,13 @@
       "hint_firefox": "about:debugging#/runtime/this-firefox → \"Carica componente aggiuntivo temporaneo\" → seleziona manifest.json nella cartella estratta. Firefox rimuove i componenti temporanei al riavvio, quindi va ripetuto finché non pubblichiamo su AMO.",
       "hint_safari": "Dal Safari 14 le estensioni devono passare dal Mac App Store. Una versione Safari dell'estensione OmniGet non è ancora pubblicata."
     },
+    "plugins": {
+      "title": "Plugin updates",
+      "auto_install_defaults": "Install default plugins automatically",
+      "auto_install_defaults_desc": "Downloads the recommended plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch.",
+      "auto_update": "Update plugins automatically",
+      "auto_update_desc": "Installs the latest release of your plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch."
+    },
     "rules": {
       "title": "Regole",
       "description": "Smetti di scegliere ogni volta la stessa cartella e qualità per lo stesso canale. Vince la prima regola che corrisponde.",

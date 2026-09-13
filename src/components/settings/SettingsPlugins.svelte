@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
   import { t } from "$lib/i18n";
-  import { getSettings, type DependencyStatus } from "./settings-helpers";
+  import { getSettings, toggleBool, type DependencyStatus } from "./settings-helpers";
   import { showToast } from "$lib/stores/toast-store.svelte";
   import DependencyRow from "./DependencyRow.svelte";
 
@@ -85,6 +85,45 @@
 </script>
 
 {#if settings}
+  <section class="section">
+    <h5 class="section-title">{$t("settings.plugins.title")}</h5>
+    <div class="card">
+      <div class="setting-row">
+        <div class="setting-col">
+          <span class="setting-label">{$t("settings.plugins.auto_install_defaults")}</span>
+          <span class="setting-path">{$t("settings.plugins.auto_install_defaults_desc")}</span>
+        </div>
+        <button
+          class="toggle"
+          class:on={settings.plugins?.auto_install_defaults}
+          onclick={() => toggleBool("plugins", "auto_install_defaults", settings.plugins?.auto_install_defaults ?? false)}
+          role="switch"
+          aria-checked={settings.plugins?.auto_install_defaults ?? false}
+          aria-label={$t("settings.plugins.auto_install_defaults") as string}
+        >
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+      <div class="divider"></div>
+      <div class="setting-row">
+        <div class="setting-col">
+          <span class="setting-label">{$t("settings.plugins.auto_update")}</span>
+          <span class="setting-path">{$t("settings.plugins.auto_update_desc")}</span>
+        </div>
+        <button
+          class="toggle"
+          class:on={settings.plugins?.auto_update}
+          onclick={() => toggleBool("plugins", "auto_update", settings.plugins?.auto_update ?? false)}
+          role="switch"
+          aria-checked={settings.plugins?.auto_update ?? false}
+          aria-label={$t("settings.plugins.auto_update") as string}
+        >
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <section class="section">
     <h5 class="section-title">{$t("settings.browser_ext.title")}</h5>
     <p class="muted">{$t("settings.browser_ext.description")}</p>

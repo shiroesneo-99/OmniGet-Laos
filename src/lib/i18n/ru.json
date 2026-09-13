@@ -3998,6 +3998,13 @@
       "hint_firefox": "about:debugging#/runtime/this-firefox → «Загрузить временное дополнение» → выберите manifest.json в распакованной папке. Firefox удаляет временные дополнения при перезапуске, так что это придётся повторять, пока мы не опубликуем расширение на AMO.",
       "hint_safari": "Начиная с Safari 14 расширения распространяются только через Mac App Store. Версия расширения OmniGet для Safari пока не опубликована."
     },
+    "plugins": {
+      "title": "Plugin updates",
+      "auto_install_defaults": "Install default plugins automatically",
+      "auto_install_defaults_desc": "Downloads the recommended plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch.",
+      "auto_update": "Update plugins automatically",
+      "auto_update_desc": "Installs the latest release of your plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch."
+    },
     "rules": {
       "title": "Правила",
       "description": "Хватит каждый раз выбирать одну и ту же папку и качество для одного канала. Побеждает первое подходящее правило.",

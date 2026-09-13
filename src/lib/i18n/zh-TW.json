@@ -3998,6 +3998,13 @@
       "hint_firefox": "about:debugging#/runtime/this-firefox → 「載入暫時附加元件」 → 選擇匯出資料夾中的 manifest.json。Firefox 重新啟動後會移除暫時附加元件，因此在我們上架 AMO 之前需要重複此步驟。",
       "hint_safari": "自 Safari 14 起，擴充功能必須透過 Mac App Store 發佈。OmniGet 擴充功能的 Safari 版本尚未發佈。"
     },
+    "plugins": {
+      "title": "Plugin updates",
+      "auto_install_defaults": "Install default plugins automatically",
+      "auto_install_defaults_desc": "Downloads the recommended plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch.",
+      "auto_update": "Update plugins automatically",
+      "auto_update_desc": "Installs the latest release of your plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch."
+    },
     "rules": {
       "title": "規則",
       "description": "別再為同一個頻道每次都選一樣的資料夾和畫質。第一條符合的規則生效。",

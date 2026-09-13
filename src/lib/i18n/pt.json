@@ -3998,6 +3998,13 @@
       "hint_firefox": "about:debugging#/runtime/this-firefox → \"Carregar complemento temporário\" → selecionar manifest.json da pasta extraída. O Firefox descarta complementos temporários ao reiniciar, então isso precisa ser repetido até publicarmos na AMO.",
       "hint_safari": "O Safari exige que extensões venham pela Mac App Store desde o Safari 14. Ainda não publicamos uma versão Safari da extensão do OmniGet."
     },
+    "plugins": {
+      "title": "Plugin updates",
+      "auto_install_defaults": "Install default plugins automatically",
+      "auto_install_defaults_desc": "Downloads the recommended plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch.",
+      "auto_update": "Update plugins automatically",
+      "auto_update_desc": "Installs the latest release of your plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch."
+    },
     "rules": {
       "title": "Regras",
       "description": "Pare de escolher a mesma pasta e qualidade para o mesmo canal toda vez. A primeira regra que casar vence.",

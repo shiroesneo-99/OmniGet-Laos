@@ -3998,6 +3998,13 @@
       "hint_firefox": "about:debugging#/runtime/this-firefox → « Charger un module temporaire » → sélectionnez manifest.json dans le dossier extrait. Firefox supprime les modules temporaires au redémarrage, il faudra donc recommencer tant que nous n'aurons pas publié sur AMO.",
       "hint_safari": "Depuis Safari 14, les extensions doivent passer par le Mac App Store. Une version Safari de l'extension OmniGet n'est pas encore publiée."
     },
+    "plugins": {
+      "title": "Plugin updates",
+      "auto_install_defaults": "Install default plugins automatically",
+      "auto_install_defaults_desc": "Downloads the recommended plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch.",
+      "auto_update": "Update plugins automatically",
+      "auto_update_desc": "Installs the latest release of your plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch."
+    },
     "rules": {
       "title": "Règles",
       "description": "Arrêtez de choisir le même dossier et la même qualité pour la même chaîne à chaque fois. La première règle qui correspond l'emporte.",

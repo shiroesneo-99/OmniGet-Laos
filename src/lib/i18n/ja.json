@@ -3998,6 +3998,13 @@
       "hint_firefox": "about:debugging#/runtime/this-firefox → 「一時的なアドオンを読み込む」 → 書き出したフォルダー内の manifest.json を選択します。Firefox は再起動時に一時アドオンを破棄するため、AMO で公開するまでは毎回やり直す必要があります。",
       "hint_safari": "Safari 14 以降、拡張機能は Mac App Store 経由での配布が必須です。OmniGet 拡張機能の Safari 版はまだ公開していません。"
     },
+    "plugins": {
+      "title": "Plugin updates",
+      "auto_install_defaults": "Install default plugins automatically",
+      "auto_install_defaults_desc": "Downloads the recommended plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch.",
+      "auto_update": "Update plugins automatically",
+      "auto_update_desc": "Installs the latest release of your plugins from GitHub at startup. Plugins are native code that runs inside OmniGet. Takes effect on next launch."
+    },
     "rules": {
       "title": "ルール",
       "description": "同じチャンネルに毎回同じフォルダーと画質を選ぶのをやめましょう。最初に一致したルールが適用されます。",
