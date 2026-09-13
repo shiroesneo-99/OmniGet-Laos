@@ -28,8 +28,31 @@ pub struct DictationOptions {
     pub trailing_space: bool,
 }
 
+/// Default whisper model. Must be a real id from `whisper::list_models`
+/// (there is no plain "base").
+const DEFAULT_MODEL: &str = "base-q5_1";
+
 fn base() -> String {
-    "base".into()
+    DEFAULT_MODEL.into()
+}
+
+/// Maps an unknown/legacy model id ("base", "small", ...) to the nearest
+/// valid whisper id, so an old saved value doesn't fail at Start.
+fn normalize_model(model: &str) -> String {
+    let ids: Vec<String> = super::whisper::list_models()
+        .into_iter()
+        .map(|m| m.id)
+        .collect();
+    let m = model.trim();
+    if ids.iter().any(|id| id == m) {
+        return m.to_string();
+    }
+    if !m.is_empty() {
+        if let Some(id) = ids.iter().find(|id| id.starts_with(&format!("{}-", m))) {
+            return id.clone();
+        }
+    }
+    DEFAULT_MODEL.into()
 }
 fn auto() -> String {
     "auto".into()
@@ -93,7 +116,8 @@ pub fn state() -> DictationState {
     }
 }
 
-pub fn set_options(opts: DictationOptions) {
+pub fn set_options(mut opts: DictationOptions) {
+    opts.model = normalize_model(&opts.model);
     *OPTS.lock().unwrap_or_else(|e| e.into_inner()) = Some(opts);
 }
 
@@ -397,9 +421,20 @@ mod tests {
     #[test]
     fn defaults() {
         let o = options();
-        assert_eq!(o.model, "base");
+        assert_eq!(o.model, "base-q5_1");
         assert_eq!(o.output, "type");
         assert!(input_args("").len() == 4);
         assert_eq!(state().phase, "idle");
+    }
+
+    #[test]
+    fn legacy_model_ids_map_to_real_ones() {
+        assert_eq!(normalize_model("base"), "base-q5_1");
+        assert_eq!(normalize_model("tiny"), "tiny-q5_1");
+        assert_eq!(normalize_model("medium"), "medium-q5_0");
+        assert_eq!(normalize_model("large-v3-turbo"), "large-v3-turbo");
+        assert_eq!(normalize_model("small-q5_1"), "small-q5_1");
+        assert_eq!(normalize_model("nonsense"), "base-q5_1");
+        assert_eq!(normalize_model(""), "base-q5_1");
     }
 }

@@ -14,7 +14,7 @@
   type WhisperStatus = { installed: boolean; models: Model[] };
 
   let devices = $state<Device[]>([]);
-  let opts = $state<Opts>({ model: "base", language: "auto", device: "", output: "type", trailing_space: true });
+  let opts = $state<Opts>({ model: "base-q5_1", language: "auto", device: "", output: "type", trailing_space: true });
   let st = $state<State>({ phase: "idle", seconds: 0, last_text: "", error: null });
   let whisper = $state<WhisperStatus | null>(null);
   let hotkey = $state("");
@@ -29,6 +29,9 @@
       const map = await invoke<Record<string, string>>("tool_hotkeys_get"); hotkey = map.dictation ?? ""; hotkeyDraft = hotkey;
       whisper = await invoke<WhisperStatus>("tool_whisper_status");
       devices = await invoke<Device[]>("tool_dictation_devices");
+      // A saved model that isn't downloaded would fail at Start: fall back to one that is.
+      const installed = whisper.models.filter((m) => m.installed);
+      if (installed.length && !installed.some((m) => m.id === opts.model)) { opts.model = installed[0].id; await saveOpts(); }
     } catch (e) { showToast("error", errText(e)); }
     await poll(); timer = setInterval(poll, 500);
     unlisten = await listen<{ phase: string; error?: string; warning?: string; text?: string }>("tool-dictation", (e) => {
