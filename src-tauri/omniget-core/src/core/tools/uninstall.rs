@@ -39,10 +39,31 @@ fn size_of(path: &Path) -> u64 {
 }
 
 async fn run(program: &str, args: &[&str]) -> anyhow::Result<String> {
-    let o = crate::core::process::command(program)
-        .args(args)
-        .output()
-        .await?;
+    let mut c = crate::core::process::command(program);
+    c.args(args);
+    run_command(program, c).await
+}
+
+/// Linha de argumentos passada crua ao `cmd.exe` para executar `cmd` (um
+/// UninstallString). Com `/S`, o cmd tira só a primeira e a última aspas e
+/// roda o resto como está, então `"C:\x\unins.exe" /S` funciona. Não dá para
+/// usar `.arg()`: o escape do Rust vira `\"`, que o cmd.exe não entende.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+fn cmd_shell_args(cmd: &str) -> String {
+    format!("/D /S /C \"{}\"", cmd)
+}
+
+/// `cmd.exe` pronto para rodar `cmd`. Só deve receber comandos vindos da
+/// varredura do registro ([`list`]), nunca do webview.
+#[cfg(target_os = "windows")]
+fn cmd_shell(cmd: &str) -> tokio::process::Command {
+    let mut c = crate::core::process::command("cmd");
+    c.raw_arg(cmd_shell_args(cmd));
+    c
+}
+
+async fn run_command(program: &str, mut c: tokio::process::Command) -> anyhow::Result<String> {
+    let o = c.output().await?;
     if !o.status.success() {
         return Err(anyhow!(
             "{} falhou: {}",
@@ -699,9 +720,13 @@ async fn uninstall(app: &App, leftover_paths: &[String]) -> UninstallResult {
                     .map(|_| "desinstalado".into())
             }
         } else {
-            run("cmd", &["/C", cmd])
+            #[cfg(target_os = "windows")]
+            let r = run_command("cmd", cmd_shell(cmd))
                 .await
-                .map(|_| "desinstalador executado".into())
+                .map(|_| "desinstalador executado".into());
+            #[cfg(not(target_os = "windows"))]
+            let r = Err(anyhow!("UninstallString só roda no Windows"));
+            r
         }
     } else {
         match app.kind.as_str() {
@@ -764,6 +789,36 @@ mod tests {
         assert_eq!(parse_size("300 kB"), 307_200);
         assert_eq!(parse_size("2,0 GB"), 2_147_483_648);
         assert_eq!(parse_size("bytes"), 0);
+    }
+
+    #[test]
+    fn cmd_shell_line_keeps_inner_quotes() {
+        assert_eq!(
+            cmd_shell_args(r#""C:\Program Files\App\unins000.exe" /S"#),
+            r#"/D /S /C ""C:\Program Files\App\unins000.exe" /S""#
+        );
+        assert_eq!(
+            cmd_shell_args(r"C:\App\uninst.exe"),
+            r#"/D /S /C "C:\App\uninst.exe""#
+        );
+    }
+
+    /// Roda um comando inofensivo (`where.exe /?` e `echo`) pelo mesmo caminho
+    /// usado pelos desinstaladores, com exe e argumento entre aspas.
+    #[cfg(target_os = "windows")]
+    #[tokio::test]
+    async fn cmd_shell_runs_quoted_exe() {
+        let sysroot = std::env::var("SystemRoot").unwrap_or_else(|_| r"C:\Windows".into());
+        let probe = format!(r#""{}\System32\where.exe" /?"#, sysroot);
+        let out = run_command("cmd", cmd_shell(&probe)).await;
+        assert!(out.is_ok(), "{:?}", out);
+
+        let probe = format!(
+            r#""{}\System32\cmd.exe" /D /C echo "omniget probe""#,
+            sysroot
+        );
+        let out = run_command("cmd", cmd_shell(&probe)).await.unwrap();
+        assert!(out.contains("omniget probe"), "{}", out);
     }
 }
 
