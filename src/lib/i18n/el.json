@@ -4254,7 +4254,7 @@
       "provider_local": "Τοπικό (συμβατό με OpenAI)",
       "model": "Μοντέλο",
       "model_desc": "Το αναγνωριστικό μοντέλου για τον επιλεγμένο πάροχο.",
-      "model_placeholder": "π.χ. gpt-4o-mini, claude-3-5-sonnet-latest, llama3",
+      "model_placeholder": "π.χ. gpt-4o-mini, claude-sonnet-5, llama3",
       "openai_key": "Κλειδί API OpenAI",
       "anthropic_key": "Κλειδί API Anthropic",
       "key_set": "Υπάρχει αποθηκευμένο κλειδί. Άφησέ το κενό για να διατηρηθεί.",

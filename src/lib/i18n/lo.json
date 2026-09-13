@@ -4254,7 +4254,7 @@
       "provider_local": "ໃນເຄື່ອງ (ເຂົ້າກັນໄດ້ກັບ OpenAI)",
       "model": "ໂມເດວ",
       "model_desc": "ຕົວລະບຸໂມເດວສຳລັບຜູ້ໃຫ້ບໍລິການທີ່ເລືອກ.",
-      "model_placeholder": "ເຊັ່ນ gpt-4o-mini, claude-3-5-sonnet-latest, llama3",
+      "model_placeholder": "ເຊັ່ນ gpt-4o-mini, claude-sonnet-5, llama3",
       "openai_key": "ຄີ API OpenAI",
       "anthropic_key": "ຄີ API Anthropic",
       "key_set": "ບັນທຶກຄີແລ້ວ. ປະວ່າງໄວ້ເພື່ອໃຊ້ຄີເດີມ.",

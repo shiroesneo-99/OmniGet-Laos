@@ -4254,7 +4254,7 @@
       "provider_local": "本地（兼容 OpenAI）",
       "model": "模型",
       "model_desc": "所选提供方的模型标识符。",
-      "model_placeholder": "例如 gpt-4o-mini、claude-3-5-sonnet-latest、llama3",
+      "model_placeholder": "例如 gpt-4o-mini、claude-sonnet-5、llama3",
       "openai_key": "OpenAI API 密钥",
       "anthropic_key": "Anthropic API 密钥",
       "key_set": "已保存密钥。留空以保留。",

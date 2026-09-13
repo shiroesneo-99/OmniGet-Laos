@@ -36,10 +36,11 @@ const DEFAULT_EXTENSIONS: &[&str] = &[
 pub const DEFAULT_MODELS: &[&str] = &[
     "gpt-4o",
     "gpt-4o-mini",
-    "claude-3-5-sonnet-20241022",
-    "claude-3-5-haiku-20241022",
-    "gemini-1.5-pro",
-    "gemini-1.5-flash",
+    "claude-opus-5",
+    "claude-sonnet-5",
+    "claude-haiku-4-5",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
     "deepseek-chat",
 ];
 

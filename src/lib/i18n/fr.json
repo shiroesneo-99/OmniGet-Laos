@@ -4254,7 +4254,7 @@
       "provider_local": "Local (compatible OpenAI)",
       "model": "Modèle",
       "model_desc": "L'identifiant du modèle pour le fournisseur choisi.",
-      "model_placeholder": "ex. gpt-4o-mini, claude-3-5-sonnet-latest, llama3",
+      "model_placeholder": "ex. gpt-4o-mini, claude-sonnet-5, llama3",
       "openai_key": "Clé API OpenAI",
       "anthropic_key": "Clé API Anthropic",
       "key_set": "Une clé est enregistrée. Laissez vide pour la conserver.",
