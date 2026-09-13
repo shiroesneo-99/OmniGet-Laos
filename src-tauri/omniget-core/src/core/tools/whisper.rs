@@ -287,6 +287,18 @@ async fn to_wav16k(input: &Path) -> anyhow::Result<PathBuf> {
     Ok(out)
 }
 
+/// Percentual de uma linha de progresso do `whisper-cli -pp`, que vem com
+/// prefixo da função (`whisper_print_progress_callback: progress =  42%`).
+fn parse_progress_line(line: &str) -> Option<u64> {
+    let idx = line.find("progress =")?;
+    let rest = line[idx + "progress =".len()..].trim_start();
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() || !rest[digits.len()..].trim_start().starts_with('%') {
+        return None;
+    }
+    digits.parse::<u64>().ok().map(|p| p.min(100))
+}
+
 fn parse_whisper_json(text: &str) -> anyhow::Result<(String, Vec<Cue>)> {
     let json: serde_json::Value = serde_json::from_str(text)?;
     let language = json["result"]["language"]
@@ -363,7 +375,7 @@ pub async fn transcribe(
         .spawn()
         .map_err(|e| anyhow!("nao foi possivel iniciar o whisper-cli: {}", e))?;
 
-    // `-pp` escreve "progress = 42%" no stderr.
+    // `-pp` escreve "whisper_print_progress_callback: progress =  42%" no stderr.
     let stderr = child.stderr.take();
     let p2 = progress.clone();
     let id2 = id.clone();
@@ -373,10 +385,8 @@ pub async fn transcribe(
         if let Some(err) = stderr {
             let mut lines = BufReader::new(err).lines();
             while let Ok(Some(line)) = lines.next_line().await {
-                if let Some(rest) = line.trim().strip_prefix("progress =") {
-                    if let Ok(pct) = rest.trim().trim_end_matches('%').trim().parse::<u64>() {
-                        report(&p2, &id2, "transcribe", pct.min(100), Some(100), None);
-                    }
+                if let Some(pct) = parse_progress_line(&line) {
+                    report(&p2, &id2, "transcribe", pct, Some(100), None);
                 } else if !line.trim().is_empty() {
                     tail = line;
                 }
@@ -434,6 +444,33 @@ pub async fn transcribe(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_progress_lines() {
+        assert_eq!(
+            parse_progress_line("whisper_print_progress_callback: progress =  42%"),
+            Some(42)
+        );
+        assert_eq!(
+            parse_progress_line("whisper_print_progress_callback: progress =   5%"),
+            Some(5)
+        );
+        assert_eq!(
+            parse_progress_line("whisper_print_progress_callback: progress = 100%\r"),
+            Some(100)
+        );
+        assert_eq!(parse_progress_line("progress = 7%"), Some(7));
+        assert_eq!(
+            parse_progress_line(
+                "whisper_init_from_file_with_params_no_state: loading model from 'ggml-base.bin'"
+            ),
+            None
+        );
+        assert_eq!(
+            parse_progress_line("whisper_full_with_state: progress = unknown"),
+            None
+        );
+    }
 
     /// Rede real: resolve a release com binário, baixa, confere sha256 e
     /// desempacota numa pasta temporária (não mexe na instalação gerenciada).
