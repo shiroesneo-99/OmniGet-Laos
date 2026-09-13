@@ -79,9 +79,23 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=6144
         with:
           tagName: v__VERSION__
-          releaseName: 'OmniGet v__VERSION__'
+          releaseName: 'OmniGet ລາວ v__VERSION__'
           releaseBody: |
-            ## Downloads
+            ## ດາວໂຫຼດ
+
+            ໜ້າດາວໂຫຼດ ແລະ ວິທີຕິດຕັ້ງ: https://shiroesneo-99.github.io/OmniGet-Laos/
+
+            | ລະບົບ | ໄຟລ໌ |
+            |---|---|
+            | **Windows 10/11** | `_x64-setup.exe` (ຕົວຕິດຕັ້ງ) ຫຼື `_x64-portable.exe` (ບໍ່ຕ້ອງຕິດຕັ້ງ) |
+            | **macOS** | `.dmg`: `aarch64` ສຳລັບ Apple Silicon, `x64` ສຳລັບ Intel |
+            | **Linux** | `.AppImage` (ທຸກ distro) ຫຼື `.deb` (Debian/Ubuntu) |
+
+            **Windows:** ຖ້າຂຶ້ນ "Windows protected your PC", ກົດ **More info → Run anyway**.
+
+            ---
+
+            ## Downloads (English)
 
             **Windows**: `.exe` installer or portable.
             **macOS**: `.dmg` (Apple Silicon `aarch64` or Intel `x86_64`).
