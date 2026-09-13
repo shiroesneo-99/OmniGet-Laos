@@ -58,6 +58,7 @@
     "@types/cytoscape": "^3.31.0",
     "abcjs": "^6.6.3",
     "cytoscape": "^3.33.3",
+    "dompurify": "^3.4.15",
     "flowchart.js": "^1.18.0",
     "highlight.js": "^11.10.0",
     "hls.js": "^1.6.16",

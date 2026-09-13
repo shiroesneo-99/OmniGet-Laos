@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
   import { pluginInvoke } from "$lib/plugin-invoke";
+  import { sanitizeSvg } from "$lib/sanitize";
   import { listen, type UnlistenFn } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { showToast } from "$lib/stores/toast-store.svelte";
@@ -1038,7 +1039,7 @@
         </div>
       {:else if qrSvg}
         <div class="qr-container">
-          {@html qrSvg}
+          {@html sanitizeSvg(qrSvg)}
         </div>
       {/if}
 

@@ -1,3 +1,5 @@
+import { sanitizeHtml } from "$lib/sanitize";
+
 let markedInstance: typeof import("marked").marked | null = null;
 let loadPromise: Promise<typeof import("marked").marked> | null = null;
 
@@ -22,7 +24,7 @@ export async function renderMarkdown(text: string): Promise<string> {
   try {
     const m = await getMarked();
     const out = m.parse(text, { async: false }) as string;
-    return out;
+    return sanitizeHtml(out);
   } catch {
     return escapeHtml(text);
   }

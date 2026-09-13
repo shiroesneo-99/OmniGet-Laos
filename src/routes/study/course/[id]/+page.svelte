@@ -7,6 +7,7 @@
   import PageHero from "$lib/study-components/PageHero.svelte";
   import ProgressRing from "$lib/study-components/ProgressRing.svelte";
   import { renderMarkdownSync } from "$lib/study-markdown";
+  import { sanitizeHtml } from "$lib/sanitize";
   import {
     studySettingsGet,
     type StudySettings,
@@ -528,7 +529,7 @@
         {#if description.format === "md"}
           <div class="md-render">{@html renderMarkdownSync(description.raw, mdCache)}</div>
         {:else}
-          <div class="md-render">{@html description.raw}</div>
+          <div class="md-render">{@html sanitizeHtml(description.raw)}</div>
         {/if}
         <button
           type="button"
