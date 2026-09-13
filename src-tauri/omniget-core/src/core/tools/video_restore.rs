@@ -163,7 +163,7 @@ async fn restore_one(
         let detect = format!(
             "{}:result='{}'",
             detect_filter(opts.shakiness),
-            file.to_string_lossy().replace('\\', "/")
+            super::subtitle::escape_filter_path(&file.to_string_lossy())
         );
         let out = crate::core::process::command(ffmpeg)
             .args(["-y", "-hide_banner", "-loglevel", "error", "-i"])
@@ -186,7 +186,7 @@ async fn restore_one(
     if let Some(file) = trf.as_ref() {
         chain_parts.push(format!(
             "vidstabtransform=input='{}':{}",
-            file.to_string_lossy().replace('\\', "/"),
+            super::subtitle::escape_filter_path(&file.to_string_lossy()),
             transform_filter(opts.smoothing).trim_start_matches("vidstabtransform=")
         ));
     }
