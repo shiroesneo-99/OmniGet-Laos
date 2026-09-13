@@ -386,10 +386,39 @@ pub async fn models(entry: &KeyEntry) -> anyhow::Result<Vec<String>> {
     Ok(ids)
 }
 
+/// Some providers serve `/models` without auth, so listing models proves
+/// nothing about the key. For those, hit an authenticated endpoint first.
+async fn verify_key(entry: &KeyEntry) -> anyhow::Result<()> {
+    if entry.kind == "openrouter" {
+        if entry.key.is_empty() {
+            return Err(anyhow!("OpenRouter: no key"));
+        }
+        let resp = client()?
+            .get(format!("{}/key", entry.base_url.trim_end_matches('/')))
+            .bearer_auth(&entry.key)
+            .send()
+            .await?;
+        let status = resp.status();
+        if !status.is_success() {
+            let text = resp.text().await.unwrap_or_default();
+            return Err(anyhow!(
+                "OpenRouter: HTTP {}: {}",
+                status.as_u16(),
+                text.chars().take(200).collect::<String>()
+            ));
+        }
+    }
+    Ok(())
+}
+
 pub async fn test(id: &str) -> anyhow::Result<KeyView> {
     let entry = get(id)?;
     let now = chrono::Utc::now().timestamp();
-    match models(&entry).await {
+    let checked = match verify_key(&entry).await {
+        Ok(()) => models(&entry).await,
+        Err(e) => Err(e),
+    };
+    match checked {
         Ok(ids) => update(id, |e| {
             e.last_ok = Some(true);
             e.last_checked = Some(now);
