@@ -35,6 +35,21 @@ pub struct AppSettings {
     pub accessibility: AccessibilitySettings,
     #[serde(default)]
     pub omnidisc: OmnidiscSettings,
+    #[serde(default)]
+    pub plugins: PluginSettings,
+}
+
+/// Background plugin maintenance. Plugins are native libraries loaded
+/// in-process, so fetching and loading them without the user asking is
+/// opt-in. Manual installs from the Marketplace are unaffected.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct PluginSettings {
+    /// Install the registry's default plugins at startup.
+    #[serde(default)]
+    pub auto_install_defaults: bool,
+    /// Update installed plugins to their latest release at startup.
+    #[serde(default)]
+    pub auto_update: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -722,6 +737,7 @@ impl Default for AppSettings {
             league: LeagueSettings::default(),
             accessibility: AccessibilitySettings::default(),
             omnidisc: OmnidiscSettings::default(),
+            plugins: PluginSettings::default(),
         }
     }
 }
@@ -804,6 +820,17 @@ mod backcompat_tests {
             AppSettings::default().appearance.theme
         );
         assert_eq!(parsed.schema_version, AppSettings::default().schema_version);
+    }
+
+    #[test]
+    fn settings_json_sem_plugins_abre_com_auto_update_desligado() {
+        let mut anterior = serde_json::to_value(AppSettings::default()).expect("serializa");
+        let removida = anterior.as_object_mut().expect("objeto").remove("plugins");
+        assert!(removida.is_some());
+        let parsed: AppSettings =
+            serde_json::from_value(anterior).expect("arquivo sem `plugins` tem que abrir");
+        assert!(!parsed.plugins.auto_install_defaults);
+        assert!(!parsed.plugins.auto_update);
     }
 
     #[test]

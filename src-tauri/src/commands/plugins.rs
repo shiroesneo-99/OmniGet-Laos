@@ -382,6 +382,8 @@ struct GitHubRelease {
 struct GitHubAsset {
     name: String,
     browser_download_url: String,
+    #[serde(default)]
+    digest: Option<String>,
 }
 
 pub async fn install_plugin_zip_from_repo(
@@ -427,6 +429,25 @@ pub async fn install_plugin_zip_from_repo(
         .bytes()
         .await
         .map_err(|e| format!("NetworkUnreachable|Failed to read download: {}", e))?;
+
+    // The plugin is a native library loaded in-process: when GitHub publishes
+    // a digest for the asset, refuse anything that does not match it.
+    match asset.digest.as_deref() {
+        Some(raw) => {
+            let expected = omniget_core::core::dependencies::integrity::parse_github_digest(raw)
+                .ok_or_else(|| format!("Unrecognized digest for {}: {}", asset.name, raw))?;
+            omniget_core::core::dependencies::integrity::verify_sha256(
+                &zip_bytes,
+                &expected,
+                &asset.name,
+            )
+            .map_err(|e| e.to_string())?;
+        }
+        None => tracing::warn!(
+            "plugin asset {} has no GitHub digest; installing unverified",
+            asset.name
+        ),
+    }
 
     let plugin_dir = {
         let manager = state.read().await;

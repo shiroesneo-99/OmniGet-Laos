@@ -749,12 +749,20 @@ pub fn run() {
                                 return;
                             }
                         };
-                        rt.block_on(commands::plugins::ensure_default_plugins(
-                            std::sync::Arc::clone(&mgr_for_plugins),
-                        ));
-                        rt.block_on(commands::plugins::auto_update_plugins(
-                            std::sync::Arc::clone(&mgr_for_plugins),
-                        ));
+                        // Plugins are native code loaded in-process: only
+                        // fetch them in the background when the user opted in.
+                        let plugin_settings =
+                            storage::config::load_settings(&app_emit).plugins;
+                        if plugin_settings.auto_install_defaults {
+                            rt.block_on(commands::plugins::ensure_default_plugins(
+                                std::sync::Arc::clone(&mgr_for_plugins),
+                            ));
+                        }
+                        if plugin_settings.auto_update {
+                            rt.block_on(commands::plugins::auto_update_plugins(
+                                std::sync::Arc::clone(&mgr_for_plugins),
+                            ));
+                        }
 
                         // Load anything newly installed above. load_all is
                         // not idempotent (re-inserting drops the previously
