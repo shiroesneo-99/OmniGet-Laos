@@ -632,8 +632,39 @@ pub struct UninstallResult {
     pub failed: Vec<String>,
 }
 
-/// Desinstala o app e, se pedido, manda as sobras para a lixeira.
-pub async fn uninstall(app: &App, leftover_paths: &[String]) -> UninstallResult {
+/// Desinstala pelo `id` de [`list`]. O comando de desinstalação (Windows:
+/// UninstallString, executado via `cmd /C`) e as sobras vêm de uma varredura
+/// nova feita aqui, nunca de quem chamou: um `App` vindo do webview poderia
+/// trazer qualquer comando em `key`. Das sobras pedidas, só as que
+/// [`leftovers`] devolve para esse app vão para a lixeira.
+pub async fn uninstall_by_id(id: &str, leftover_paths: &[String]) -> UninstallResult {
+    let Some(app) = list(super::noop_progress())
+        .await
+        .into_iter()
+        .find(|a| a.id == id)
+    else {
+        return UninstallResult {
+            message: format!("app nao encontrado: {}", id),
+            ..Default::default()
+        };
+    };
+    let scanned = {
+        let app = app.clone();
+        tokio::task::spawn_blocking(move || leftovers(&app))
+            .await
+            .unwrap_or_default()
+    };
+    let allowed: Vec<String> = leftover_paths
+        .iter()
+        .filter(|p| scanned.iter().any(|l| &l.path == *p))
+        .cloned()
+        .collect();
+    uninstall(&app, &allowed).await
+}
+
+/// Desinstala o app e, se pedido, manda as sobras para a lixeira. `app` tem
+/// que vir de [`list`]; para entrada externa use [`uninstall_by_id`].
+async fn uninstall(app: &App, leftover_paths: &[String]) -> UninstallResult {
     let mut r = UninstallResult::default();
     let res: anyhow::Result<String> = if cfg!(target_os = "macos") {
         match trash::delete(&app.path) {

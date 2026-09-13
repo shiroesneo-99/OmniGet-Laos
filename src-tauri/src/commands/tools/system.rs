@@ -6,7 +6,7 @@ use omniget_core::core::tools::{
     disk, hosts_block, startup, sysclean, uninstall, win_apps, win_registry, win_tweaks,
     win_updater,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::{err, progress};
 
@@ -106,12 +106,19 @@ pub async fn tool_uninstall_leftovers(app: uninstall::App) -> Vec<uninstall::Lef
         .unwrap_or_default()
 }
 
+/// Só o `id` do app é lido do webview (campos extras são ignorados); o
+/// comando de desinstalação é relido do sistema em `uninstall_by_id`.
+#[derive(Deserialize)]
+pub struct UninstallTarget {
+    pub id: String,
+}
+
 #[tauri::command]
 pub async fn tool_uninstall_run(
-    app: uninstall::App,
+    app: UninstallTarget,
     leftovers: Vec<String>,
 ) -> uninstall::UninstallResult {
-    uninstall::uninstall(&app, &leftovers).await
+    uninstall::uninstall_by_id(&app.id, &leftovers).await
 }
 
 // ── Windows: debloat, registro, atualizador ──

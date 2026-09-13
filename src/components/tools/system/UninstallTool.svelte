@@ -42,7 +42,7 @@
     if (!picked || busy) return;
     busy = true;
     try {
-      result = await invoke<Result>("tool_uninstall_run", { app: picked, leftovers: [...chosen] });
+      result = await invoke<Result>("tool_uninstall_run", { app: { id: picked.id }, leftovers: [...chosen] });
       showToast(result.ok ? "success" : "error", result.message);
       if (result.ok) { const gone = picked.id; apps = apps.filter((a) => a.id !== gone); picked = null; }
     } catch (e) { showToast("error", errText(e)); } finally { busy = false; }
