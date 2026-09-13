@@ -6757,6 +6757,7 @@ export type TranslationKeys =
   | 'tools.uninstall.no_leftovers'
   | 'tools.uninstall.run'
   | 'tools.uninstall.select'
+  | 'tools.uninstall.shared_leftover'
   | 'tools.uninstall.trashed'
   | 'tools.updater.available'
   | 'tools.updater.managers'

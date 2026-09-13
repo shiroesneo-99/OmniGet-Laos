@@ -2370,6 +2370,7 @@
       "leftovers": "Sobras",
       "leftovers_hint": "Os itens marcados vão para a Lixeira junto com o app.",
       "no_leftovers": "Nenhuma sobra encontrada.",
+      "shared_leftover": "Pasta do fabricante: pode ter dados de outros apps. Não vem marcada.",
       "trashed": "sobras movidas para a Lixeira"
     },
     "debloat": {

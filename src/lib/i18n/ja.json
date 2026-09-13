@@ -2370,6 +2370,7 @@
       "leftovers": "Leftovers",
       "leftovers_hint": "Checked items go to the Trash together with the app.",
       "no_leftovers": "No leftovers found.",
+      "shared_leftover": "Vendor folder: may hold other apps' data. Not selected by default.",
       "trashed": "leftovers moved to Trash"
     },
     "debloat": {

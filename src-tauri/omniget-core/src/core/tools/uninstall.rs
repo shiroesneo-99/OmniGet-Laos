@@ -28,6 +28,10 @@ pub struct App {
 pub struct Leftover {
     pub path: String,
     pub bytes: u64,
+    /// Pasta que casou só pelo nome do publisher (ex.: `%APPDATA%\Mozilla`
+    /// para o Thunderbird): pode guardar dados de outros apps do mesmo
+    /// fabricante, então a UI lista mas não marca por padrão.
+    pub shared: bool,
 }
 
 fn home() -> PathBuf {
@@ -227,6 +231,7 @@ fn mac_leftovers(app: &App) -> Vec<Leftover> {
                 out.push(Leftover {
                     path: e.path().to_string_lossy().to_string(),
                     bytes: size_of(&e.path()),
+                    shared: false,
                 });
             }
         }
@@ -312,19 +317,30 @@ async fn win_list(progress: &super::ProgressFn) -> Vec<App> {
     out
 }
 
+/// Se a pasta `dir_name` é sobra de `app`: `None` = não é; `Some(false)` =
+/// casou pelo nome do app; `Some(true)` = casou só pelo publisher (pasta do
+/// fabricante, possivelmente compartilhada com outros apps).
+fn win_leftover_match(app: &App, dir_name: &str) -> Option<bool> {
+    let dir = dir_name.to_lowercase();
+    let is = |s: &str| s.len() >= 3 && s.to_lowercase() == dir;
+    if is(&app.name) {
+        Some(false)
+    } else if is(&app.publisher) {
+        Some(true)
+    } else {
+        None
+    }
+}
+
 fn win_leftovers(app: &App) -> Vec<Leftover> {
     let mut out = Vec::new();
     if !app.path.trim().is_empty() && Path::new(app.path.trim()).exists() {
         out.push(Leftover {
             path: app.path.clone(),
             bytes: size_of(Path::new(&app.path)),
+            shared: false,
         });
     }
-    let needles: Vec<String> = [app.name.clone(), app.publisher.clone()]
-        .into_iter()
-        .filter(|s| s.len() >= 3)
-        .map(|s| s.to_lowercase())
-        .collect();
     let mut bases = Vec::new();
     for var in ["APPDATA", "LOCALAPPDATA", "ProgramData"] {
         if let Ok(v) = std::env::var(var) {
@@ -339,15 +355,17 @@ fn win_leftovers(app: &App) -> Vec<Leftover> {
             continue;
         };
         for e in rd.flatten() {
-            let name = e.file_name().to_string_lossy().to_lowercase();
-            if needles.contains(&name) {
-                let p = e.path();
-                if p.to_string_lossy() != app.path {
-                    out.push(Leftover {
-                        path: p.to_string_lossy().to_string(),
-                        bytes: size_of(&p),
-                    });
-                }
+            let name = e.file_name().to_string_lossy().to_string();
+            let Some(shared) = win_leftover_match(app, &name) else {
+                continue;
+            };
+            let p = e.path();
+            if p.to_string_lossy() != app.path {
+                out.push(Leftover {
+                    path: p.to_string_lossy().to_string(),
+                    bytes: size_of(&p),
+                    shared,
+                });
             }
         }
     }
@@ -614,6 +632,7 @@ fn linux_leftovers(app: &App) -> Vec<Leftover> {
                 out.push(Leftover {
                     path: e.path().to_string_lossy().to_string(),
                     bytes: size_of(&e.path()),
+                    shared: false,
                 });
             }
         }
@@ -789,6 +808,30 @@ mod tests {
         assert_eq!(parse_size("300 kB"), 307_200);
         assert_eq!(parse_size("2,0 GB"), 2_147_483_648);
         assert_eq!(parse_size("bytes"), 0);
+    }
+
+    #[test]
+    fn publisher_only_leftovers_are_shared() {
+        let app = App {
+            id: "win:x".into(),
+            name: "Mozilla Thunderbird".into(),
+            version: String::new(),
+            publisher: "Mozilla".into(),
+            kind: "exe".into(),
+            path: String::new(),
+            bytes: 0,
+            needs_admin: false,
+            key: String::new(),
+        };
+        assert_eq!(win_leftover_match(&app, "mozilla"), Some(true));
+        assert_eq!(win_leftover_match(&app, "Mozilla Thunderbird"), Some(false));
+        assert_eq!(win_leftover_match(&app, "Thunderbird"), None);
+        let same = App {
+            name: "Obsidian".into(),
+            publisher: "Obsidian".into(),
+            ..app
+        };
+        assert_eq!(win_leftover_match(&same, "obsidian"), Some(false));
     }
 
     #[test]

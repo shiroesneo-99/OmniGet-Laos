@@ -7,7 +7,7 @@
   import { errText, fmtBytes, onToolProgress, reveal, type ToolProgress } from "$lib/tools/rt";
 
   type App = { id: string; name: string; version: string; publisher: string; kind: string; path: string; bytes: number; needs_admin: boolean; key: string };
-  type Leftover = { path: string; bytes: number };
+  type Leftover = { path: string; bytes: number; shared: boolean };
   type Result = { ok: boolean; message: string; trashed: string[]; failed: string[] };
 
   let apps = $state<App[]>([]);
@@ -34,7 +34,7 @@
   }
   async function pick(app: App) {
     picked = app; result = null; leftovers = []; chosen = new Set();
-    try { leftovers = await invoke<Leftover[]>("tool_uninstall_leftovers", { app }); chosen = new Set(leftovers.map((l) => l.path)); }
+    try { leftovers = await invoke<Leftover[]>("tool_uninstall_leftovers", { app }); chosen = new Set(leftovers.filter((l) => !l.shared).map((l) => l.path)); }
     catch (e) { showToast("error", errText(e)); }
   }
   function toggle(p: string) { const s = new Set(chosen); if (s.has(p)) s.delete(p); else s.add(p); chosen = s; }
@@ -90,7 +90,7 @@
         {#each leftovers as l (l.path)}
           <label class="group-row leftover">
             <input type="checkbox" checked={chosen.has(l.path)} onchange={() => toggle(l.path)} />
-            <div class="group-row-content"><div class="group-row-sub mono">{l.path}</div></div>
+            <div class="group-row-content"><div class="group-row-sub mono">{l.path}</div>{#if l.shared}<div class="group-row-sub"><span class="tag tag-warning">{$t("tools.uninstall.shared_leftover")}</span></div>{/if}</div>
             <div class="group-row-trailing btn-row"><span class="dim">{fmtBytes(l.bytes)}</span><button class="btn btn-ghost btn-sm" type="button" onclick={() => reveal(l.path)}>{$t("tools.common.reveal")}</button></div>
           </label>
         {/each}
