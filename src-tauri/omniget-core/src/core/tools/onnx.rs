@@ -203,7 +203,7 @@ pub async fn ensure_model(id: &str, progress: &ProgressFn) -> anyhow::Result<Pat
     std::fs::create_dir_all(&dir).with_context(|| format!("criando {}", dir.display()))?;
 
     let tmp = dir.join(format!(".{id}.onnx.download"));
-    let client = super::client()?;
+    let client = super::download_client()?;
     let pid = format!("onnx-model:{id}");
     super::download_to(&client, spec.url, &tmp, progress, &pid).await?;
 

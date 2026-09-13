@@ -461,7 +461,7 @@ pub async fn install_runtime(
 
     let url = format!("{}/v{}/{}", RELEASE_BASE, RUNTIME_VERSION, asset.file);
     let tmp = crate::core::tools::temp_dir().join(asset.file);
-    let client = crate::core::tools::client()?;
+    let client = crate::core::tools::download_client()?;
     crate::core::tools::download_to(&client, &url, &tmp, progress, "onnxruntime").await?;
 
     let asset_file = asset.file.to_string();

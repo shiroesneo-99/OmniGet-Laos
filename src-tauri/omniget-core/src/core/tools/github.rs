@@ -17,10 +17,13 @@ pub fn client() -> anyhow::Result<reqwest::Client> {
         ACCEPT,
         HeaderValue::from_static("application/vnd.github+json"),
     );
+    // Serve para consultar a API e baixar os pacotes: sem teto de duração total
+    // (um pacote CUDA tem centenas de MB), só de conexão e de ociosidade.
     Ok(
         crate::core::http_client::apply_global_proxy(reqwest::Client::builder())
             .default_headers(headers)
-            .timeout(std::time::Duration::from_secs(600))
+            .connect_timeout(super::CONNECT_TIMEOUT)
+            .read_timeout(super::DOWNLOAD_IDLE_TIMEOUT)
             .build()?,
     )
 }

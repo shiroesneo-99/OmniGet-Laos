@@ -146,7 +146,8 @@ pub async fn status(host: &str) -> OllamaStatus {
 pub async fn pull(host: &str, name: &str, progress: super::ProgressFn) -> anyhow::Result<()> {
     use futures::StreamExt;
     let b = base(host);
-    let client = super::client()?;
+    // Um pull de vários GB leva mais que o teto de 10 min do `client()`.
+    let client = super::download_client()?;
     let id = format!("ollama-pull:{}", name);
     let resp = client
         .post(format!("{}/api/pull", b))

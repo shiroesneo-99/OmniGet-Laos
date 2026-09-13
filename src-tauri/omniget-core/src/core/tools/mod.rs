@@ -136,7 +136,12 @@ pub fn temp_dir() -> std::path::PathBuf {
     base
 }
 
-pub fn client() -> anyhow::Result<reqwest::Client> {
+/// Tempo máximo para abrir a conexão (DNS + TCP + TLS).
+pub const CONNECT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+/// Tempo máximo sem receber nenhum byte num download grande antes de desistir.
+pub const DOWNLOAD_IDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(300);
+
+fn base_builder() -> reqwest::ClientBuilder {
     use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -145,12 +150,25 @@ pub fn client() -> anyhow::Result<reqwest::Client> {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
         ),
     );
-    Ok(
-        crate::core::http_client::apply_global_proxy(reqwest::Client::builder())
-            .default_headers(headers)
-            .timeout(std::time::Duration::from_secs(600))
-            .build()?,
-    )
+    crate::core::http_client::apply_global_proxy(reqwest::Client::builder())
+        .default_headers(headers)
+        .connect_timeout(CONNECT_TIMEOUT)
+}
+
+/// Cliente para chamadas de API e páginas: a requisição inteira tem teto de
+/// 10 min. Não use para baixar modelos ou binários grandes (veja
+/// [`download_client`]): em conexão lenta o teto corta o download no meio.
+pub fn client() -> anyhow::Result<reqwest::Client> {
+    Ok(base_builder()
+        .timeout(std::time::Duration::from_secs(600))
+        .build()?)
+}
+
+/// Cliente para downloads grandes (modelos Whisper/ONNX, pulls do Ollama):
+/// sem limite de duração total, só de conexão e de ociosidade, para que um
+/// modelo de vários GB termine mesmo a poucos Mbps.
+pub fn download_client() -> anyhow::Result<reqwest::Client> {
+    Ok(base_builder().read_timeout(DOWNLOAD_IDLE_TIMEOUT).build()?)
 }
 
 /// Baixa uma URL para um arquivo, em streaming, reportando bytes.

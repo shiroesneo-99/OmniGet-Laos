@@ -90,7 +90,7 @@ pub async fn download_model(id: &str, progress: ProgressFn) -> anyhow::Result<Pa
     std::fs::create_dir_all(&dir)?;
     let dest = dir.join(format!("ggml-{}.bin", id));
     let url = format!("{}/ggml-{}.bin", HF_BASE, id);
-    let client = super::client()?;
+    let client = super::download_client()?;
     super::download_to(
         &client,
         &url,
