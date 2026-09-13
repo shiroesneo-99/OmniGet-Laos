@@ -139,8 +139,14 @@ pub fn set(
     guard.clone()
 }
 
+/// Output cap for Anthropic (the API requires one). 1024 used to truncate
+/// Humanize rewrites and SRT translation JSON; every current Claude model
+/// accepts at least this much output.
+const ANTHROPIC_MAX_TOKENS: u32 = 8192;
+
 fn http_client() -> Result<reqwest::Client, String> {
-    let builder = reqwest::Client::builder().timeout(std::time::Duration::from_secs(120));
+    // Long rewrites near the output cap can take a few minutes to generate.
+    let builder = reqwest::Client::builder().timeout(std::time::Duration::from_secs(300));
     crate::core::http_client::apply_global_proxy(builder)
         .build()
         .map_err(|e| format!("HTTP client error: {}", e))
@@ -245,7 +251,7 @@ async fn anthropic_chat(
     let client = http_client()?;
     let body = serde_json::json!({
         "model": model,
-        "max_tokens": 1024,
+        "max_tokens": ANTHROPIC_MAX_TOKENS,
         "system": system,
         "messages": [ { "role": "user", "content": user } ],
     });
@@ -277,12 +283,34 @@ async fn anthropic_chat(
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
     crate::core::tools::usage::record("chat", "anthropic", model, input, output, None);
-    json.get("content")
-        .and_then(|c| c.get(0))
-        .and_then(|c| c.get("text"))
-        .and_then(|t| t.as_str())
-        .map(|s| s.trim().to_string())
-        .ok_or_else(|| "Empty AI response".to_string())
+    anthropic_text(&json)
+}
+
+/// Extracts the reply text; a reply cut off at the output cap is an error so
+/// callers never use (or try to parse) truncated output.
+fn anthropic_text(json: &serde_json::Value) -> Result<String, String> {
+    if json.get("stop_reason").and_then(|v| v.as_str()) == Some("max_tokens") {
+        return Err(format!(
+            "AI response was cut off at the {} token output limit; try a shorter input or smaller batch",
+            ANTHROPIC_MAX_TOKENS
+        ));
+    }
+    let text: String = json
+        .get("content")
+        .and_then(|c| c.as_array())
+        .map(|blocks| {
+            blocks
+                .iter()
+                .filter(|b| b.get("type").and_then(|t| t.as_str()).unwrap_or("text") == "text")
+                .filter_map(|b| b.get("text").and_then(|t| t.as_str()))
+                .collect()
+        })
+        .unwrap_or_default();
+    let text = text.trim();
+    if text.is_empty() {
+        return Err("Empty AI response".to_string());
+    }
+    Ok(text.to_string())
 }
 
 // Whisper-style transcription via the OpenAI-compatible audio endpoint. Only
@@ -431,6 +459,22 @@ pub fn history_clear() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn anthropic_text_rejects_truncated_reply() {
+        let ok = serde_json::json!({
+            "stop_reason": "end_turn",
+            "content": [{"type": "text", "text": " {\"1\": \"hi\"} "}]
+        });
+        assert_eq!(anthropic_text(&ok).unwrap(), "{\"1\": \"hi\"}");
+        let cut = serde_json::json!({
+            "stop_reason": "max_tokens",
+            "content": [{"type": "text", "text": "{\"1\": \"hi"}]
+        });
+        assert!(anthropic_text(&cut).unwrap_err().contains("cut off"));
+        let empty = serde_json::json!({"stop_reason": "end_turn", "content": []});
+        assert!(anthropic_text(&empty).is_err());
+    }
 
     #[test]
     fn view_hides_keys() {
