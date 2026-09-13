@@ -10,8 +10,8 @@
   type Result = { audio_path: string; srt_path: string; words: number; duration_ms: number };
 
   let voices = $state<Voice[]>([]);
-  let locale = $state("pt-BR");
-  let voice = $state("pt-BR-FranciscaNeural");
+  let locale = $state("lo-LA");
+  let voice = $state("lo-LA-KeomanyNeural");
   let text = $state("");
   let rate = $state(0);
   let pitch = $state(0);

@@ -12,8 +12,8 @@
   let srt = $state("");
   let video = $state("");
   let voices = $state<Voice[]>([]);
-  let locale = $state("pt-BR");
-  let voice = $state("pt-BR-AntonioNeural");
+  let locale = $state("lo-LA");
+  let voice = $state("lo-LA-ChanthavongNeural");
   let maxSpeed = $state(1.3);
   let keepOriginal = $state(0.15);
   let busy = $state(false);

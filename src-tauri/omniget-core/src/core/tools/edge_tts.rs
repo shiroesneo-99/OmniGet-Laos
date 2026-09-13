@@ -66,15 +66,17 @@ fn connect_id() -> String {
     uuid::Uuid::new_v4().simple().to_string()
 }
 
+/// Read from the API in PascalCase, sent to the webview in snake_case
+/// (TtsTool.svelte reads `short_name` / `locale`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Voice {
-    #[serde(rename = "ShortName")]
+    #[serde(rename(deserialize = "ShortName"))]
     pub short_name: String,
-    #[serde(rename = "Gender", default)]
+    #[serde(rename(deserialize = "Gender"), default)]
     pub gender: String,
-    #[serde(rename = "Locale", default)]
+    #[serde(rename(deserialize = "Locale"), default)]
     pub locale: String,
-    #[serde(rename = "FriendlyName", default)]
+    #[serde(rename(deserialize = "FriendlyName"), default)]
     pub friendly_name: String,
 }
 
@@ -493,6 +495,33 @@ mod tests {
         let cues = words_to_cues(&words);
         assert_eq!(cues.len(), 3);
         assert_eq!(cues[0].start_ms, 0);
+    }
+
+    #[test]
+    fn voice_reads_pascal_case_and_writes_snake_case() {
+        let v: Voice = serde_json::from_str(
+            r#"{"ShortName":"lo-LA-KeomanyNeural","Gender":"Female","Locale":"lo-LA","FriendlyName":"Keomany"}"#,
+        )
+        .unwrap();
+        let out = serde_json::to_value(&v).unwrap();
+        assert_eq!(out["short_name"], "lo-LA-KeomanyNeural");
+        assert_eq!(out["locale"], "lo-LA");
+        assert_eq!(out["gender"], "Female");
+        assert!(out.get("ShortName").is_none());
+    }
+
+    /// Rede real: `cargo test -p omniget-core --lib edge_tts -- --ignored --nocapture`
+    #[tokio::test]
+    #[ignore]
+    async fn live_lists_lao_voices() {
+        let voices = list_voices().await.unwrap();
+        let lao: Vec<_> = voices.iter().filter(|v| v.locale == "lo-LA").collect();
+        println!(
+            "{} voices, lao: {:?}",
+            voices.len(),
+            lao.iter().map(|v| &v.short_name).collect::<Vec<_>>()
+        );
+        assert!(!lao.is_empty());
     }
 
     /// Rede real: `cargo test -p omniget-core --lib edge_tts -- --ignored --nocapture`
