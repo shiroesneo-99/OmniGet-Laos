@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="lo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OmniGet ລາວ — ດາວໂຫຼດວິດີໂອ ແລະ ຄອສຮຽນ</title>
+<meta name="description" content="OmniGet ສະບັບພາສາລາວ: ແອັບຟຣີສຳລັບດາວໂຫຼດວິດີໂອ, ສຽງ ແລະ ຄອສຮຽນ ຈາກ YouTube, TikTok, Facebook ແລະ 1,800+ ເວັບ.">
+<meta property="og:title" content="OmniGet ລາວ">
+<meta property="og:description" content="ແອັບດາວໂຫຼດວິດີໂອ ແລະ ຄອສຮຽນ ພາສາລາວ — ຟຣີ ແລະ ເປີດໂຄດ">
+<meta property="og:image" content="https://shiroesneo-99.github.io/OmniGet-Laos/icon.png">
+<meta name="theme-color" content="#f59e0b">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&family=Noto+Serif+Lao:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbf8f3;
+    --surface: #ffffff;
+    --surface-2: #f3eee6;
+    --text: #1d1a16;
+    --muted: #6b6258;
+    --line: #e7dfd3;
+    --accent: #f59e0b;
+    --accent-ink: #1d1a16;
+    --accent-soft: #fdecc8;
+    --ok: #15803d;
+    --shadow: 0 1px 2px rgba(29,26,22,.06), 0 8px 24px rgba(29,26,22,.06);
+    --radius: 16px;
+    --serif: 'Noto Serif Lao', 'Phetsarath OT', Georgia, serif;
+    --sans: 'Noto Sans Lao', 'Phetsarath OT', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14120f;
+      --surface: #1d1a16;
+      --surface-2: #26221d;
+      --text: #f5efe6;
+      --muted: #a89e91;
+      --line: #342f28;
+      --accent: #fbbf24;
+      --accent-ink: #14120f;
+      --accent-soft: #3a2c10;
+      --ok: #4ade80;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.75 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; }
+
+  /* nav */
+  header.nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav .wrap { display: flex; align-items: center; gap: 16px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; }
+  .brand img { width: 32px; height: 32px; border-radius: 8px; }
+  .nav nav { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
+  .nav nav a { text-decoration: none; color: var(--muted); }
+  .nav nav a:hover { color: var(--text); }
+  @media (max-width: 640px) { .nav nav a:not(.gh) { display: none; } }
+
+  /* hero */
+  .hero { padding-block: 72px 56px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 48px; align-items: center; }
+  .hero > * { min-width: 0; }
+  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-block: 48px 32px; gap: 32px; } }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); color: var(--text);
+    padding: 4px 14px; border-radius: 999px; font-size: 14px; font-weight: 500;
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 800;
+    font-size: clamp(34px, 5.4vw, 56px); line-height: 1.35;
+    margin: 18px 0 16px; letter-spacing: -0.01em;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lead { font-size: 19px; color: var(--muted); max-width: 36em; margin: 0 0 28px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 22px; border-radius: 12px; font-weight: 700; font-size: 17px;
+    text-decoration: none; border: 1px solid transparent; transition: transform .15s, box-shadow .15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .btn-ghost { border-color: var(--line); background: var(--surface); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .meta { margin-top: 14px; font-size: 14px; color: var(--muted); }
+  .meta b { color: var(--text); font-weight: 500; }
+
+  .hero-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 24px;
+    box-shadow: var(--shadow); padding: 28px; text-align: center;
+  }
+  .hero-card img { width: 128px; height: 128px; border-radius: 28px; box-shadow: var(--shadow); }
+  .hero-card .paste {
+    margin-top: 22px; display: flex; gap: 8px; align-items: center;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 14px;
+    font-size: 14px; color: var(--muted); text-align: left;
+  }
+  .hero-card .paste span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hero-card .paste b { background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 4px 12px; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 16px; }
+  .chip { font-size: 13px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+  /* sections */
+  section { padding-block: 56px; }
+  section.alt { background: var(--surface-2); border-block: 1px solid var(--line); }
+  h2 { font-family: var(--serif); font-weight: 800; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.4; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 32px; max-width: 42em; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+  .card .ico { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); display: grid; place-items: center; font-size: 20px; margin-bottom: 12px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; line-height: 1.5; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .steps { counter-reset: s; display: grid; gap: 14px; max-width: 760px; }
+  .step { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .step::before { content: counter(s); width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 700; font-size: 18px; }
+  .step h3 { margin: 0 0 2px; font-size: 18px; line-height: 1.5; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  kbd { font: 13px ui-monospace, Consolas, monospace; background: var(--surface-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; color: var(--text); }
+
+  .platforms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .platforms { grid-template-columns: 1fr; } }
+  .platform { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .platform.rec { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .platform h3 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+  .platform .tag { font-size: 12px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 0 8px; font-weight: 700; }
+  .platform ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .platform li a { display: flex; justify-content: space-between; gap: 8px; text-decoration: none; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); font-size: 15px; }
+  .platform li a:hover { outline: 2px solid var(--accent); }
+  .platform li small { color: var(--muted); white-space: nowrap; }
+  .platform .none { color: var(--muted); font-size: 14px; }
+
+  .shield { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (max-width: 640px) { .shield { grid-template-columns: 1fr; } }
+  .shield div { display: flex; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 15px; }
+  .shield div::before { content: "✓"; color: var(--ok); font-weight: 700; }
+
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; max-width: 820px; }
+  details + details { margin-top: 10px; }
+  summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+  summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 20px; line-height: 1; }
+  details[open] summary::after { content: "–"; }
+  details p { color: var(--muted); margin: 10px 0 0; }
+
+  footer { padding-block: 36px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="icon.png" alt="">OmniGet ລາວ</a>
+    <nav>
+      <a href="#features">ຄຸນສົມບັດ</a>
+      <a href="#install">ວິທີຕິດຕັ້ງ</a>
+      <a href="#download">ດາວໂຫຼດ</a>
+      <a href="#faq">ຄຳຖາມ</a>
+      <a class="gh" href="https://github.com/shiroesneo-99/OmniGet-Laos">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">ພາສາລາວຄົບທຸກໜ້າ · ຟຣີ · ເປີດໂຄດ</span>
+      <h1>ວາງລິ້ງ ແລ້ວ<em>ດາວໂຫຼດ</em><br>ວິດີໂອ ແລະ ຄອສຮຽນ</h1>
+      <p class="lead">OmniGet ດາວວິດີໂອ, ເພງ ແລະ ຄອສຮຽນ ຈາກ YouTube, TikTok, Facebook, Instagram ແລະ ອີກ 1,800+ ເວັບ ມາເກັບໄວ້ໃນເຄື່ອງ. ບໍ່ຕ້ອງພິມຄຳສັ່ງ, ບໍ່ມີໂຄສະນາ, ບໍ່ຕ້ອງສະໝັກບັນຊີ.</p>
+      <div class="cta">
+        <a class="btn btn-primary" id="main-dl" href="https://github.com/shiroesneo-99/OmniGet-Laos/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>
+          <span id="main-dl-label">ດາວໂຫຼດສຳລັບ Windows</span>
+        </a>
+        <a class="btn btn-ghost" href="#download">ລະບົບອື່ນ</a>
+      </div>
+      <p class="meta" id="release-meta">Windows 10/11 · macOS · Linux</p>
+    </div>
+
+    <div class="hero-card" aria-hidden="true">
+      <img src="icon.png" alt="">
+      <div class="paste"><span>https://www.youtube.com/watch?v=…</span><b>ດາວໂຫຼດ</b></div>
+      <div class="chips">
+        <span class="chip">YouTube</span><span class="chip">TikTok</span><span class="chip">Facebook</span>
+        <span class="chip">Instagram</span><span class="chip">X</span><span class="chip">Udemy</span><span class="chip">+1,800</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="alt" id="features">
+    <div class="wrap">
+      <h2>ເຮັດຫຍັງໄດ້ແດ່</h2>
+      <p class="sub">ທຸກຢ່າງເຮັດວຽກຢູ່ໃນຄອມຂອງທ່ານ. ບໍ່ມີ server ກາງ ແລະ ບໍ່ມີການເກັບຂໍ້ມູນການດາວໂຫຼດ.</p>
+      <div class="grid">
+        <div class="card"><div class="ico">🎬</div><h3>ວິດີໂອ ແລະ ເພງ</h3><p>ເລືອກຄຸນນະພາບໄດ້ເຖິງ 4K ຫຼື ດຶງສະເພາະສຽງເປັນ MP3. ດາວທັງ playlist ໄດ້ໃນຄັ້ງດຽວ.</p></div>
+        <div class="card"><div class="ico">🎓</div><h3>ຄອສຮຽນອອນລາຍ</h3><p>ດາວຄອສທີ່ທ່ານຊື້ແລ້ວ ຈາກ Udemy, Hotmart ແລະ ອື່ນໆ ມາຮຽນຕອນບໍ່ມີເນັດ.</p></div>
+        <div class="card"><div class="ico">📝</div><h3>ຖອດສຽງເປັນຂໍ້ຄວາມ</h3><p>ຖອດສຽງວິດີໂອດ້ວຍ Whisper ໃນເຄື່ອງ ຮອງຮັບພາສາລາວ, ແລະ ແປຄຳບັນຍາຍ SRT ໄດ້.</p></div>
+        <div class="card"><div class="ico">📋</div><h3>ຄິວດາວໂຫຼດ</h3><p>ຢຸດແລ້ວດາວຕໍ່ໄດ້, ລອງໃໝ່ເອງເມື່ອເນັດຫຼຸດ, ດາວຫຼາຍໄຟລ໌ພ້ອມກັນ.</p></div>
+        <div class="card"><div class="ico">📚</div><h3>ຫ້ອງສະໝຸດຮຽນ</h3><p>ຫຼິ້ນຄອສ, ອ່ານ PDF/EPUB ແລະ ຟັງເພງ ໃນແອັບດຽວ.</p></div>
+        <div class="card"><div class="ico">🔤</div><h3>ຟອນລາວສວຍງາມ</h3><p>ມີ Noto Serif Lao ແລະ Noto Sans Lao ມາພ້ອມ, ຫຼື ເລືອກ Phetsarath OT ໄດ້.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>ວິທີຕິດຕັ້ງ (Windows)</h2>
+      <p class="sub">ໃຊ້ເວລາບໍ່ຮອດ 2 ນາທີ.</p>
+      <div class="steps">
+        <div class="step"><div><h3>ດາວໄຟລ໌ຕິດຕັ້ງ</h3><p>ກົດປຸ່ມ <b>ດາວໂຫຼດສຳລັບ Windows</b> ຂ້າງເທິງ ຈະໄດ້ໄຟລ໌ <code>omniget_…_x64-setup.exe</code>.</p></div></div>
+        <div class="step"><div><h3>ເປີດໄຟລ໌</h3><p>ຖ້າ Windows ຂຶ້ນ “Windows protected your PC”, ກົດ <b>More info</b> → <b>Run anyway</b>. ແອັບຍັງບໍ່ມີລາຍເຊັນດິຈິຕອນ ຈຶ່ງມີຄຳເຕືອນນີ້.</p></div></div>
+        <div class="step"><div><h3>ປ່ຽນເປັນພາສາລາວ</h3><p>ເປີດແອັບ → <b>Settings</b> → <b>Appearance</b> → <b>Language</b> → <b>ລາວ</b>.</p></div></div>
+        <div class="step"><div><h3>ເລີ່ມດາວໂຫຼດ</h3><p>ສຳເນົາລິ້ງວິດີໂອ ແລ້ວວາງໃສ່ແອັບ (<kbd>Ctrl</kbd> + <kbd>V</kbd>) ແລ້ວກົດດາວໂຫຼດ.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="download">
+    <div class="wrap">
+      <h2>ດາວໂຫຼດ</h2>
+      <p class="sub" id="dl-sub">ກຳລັງກວດເວີຊັນລ່າສຸດ…</p>
+      <div class="platforms">
+        <div class="platform" data-os="windows"><h3>🪟 Windows</h3><ul></ul></div>
+        <div class="platform" data-os="mac"><h3>🍎 macOS</h3><ul></ul></div>
+        <div class="platform" data-os="linux"><h3>🐧 Linux</h3><ul></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="security">
+    <div class="wrap">
+      <h2>ປອດໄພກວ່າສະບັບຕົ້ນ</h2>
+      <p class="sub">OmniGet ລາວ ພັດທະນາຕໍ່ຈາກ OmniGet ແລະ ແກ້ຈຸດສ່ຽງທີ່ພົບຈາກການກວດໂຄດ.</p>
+      <div class="shield">
+        <div>ບໍ່ດາວ ຫຼື ອັບເດດປລັກອິນເອງ ໂດຍບໍ່ໄດ້ຮັບອະນຸຍາດ</div>
+        <div>ກວດ checksum ຂອງປລັກອິນກ່ອນຕິດຕັ້ງ</div>
+        <div>ຊື່ໄຟລ໌ແປກໆ ບໍ່ສາມາດແລ່ນຄຳສັ່ງໃນເຄື່ອງໄດ້</div>
+        <div>ກັ່ນຕອງ HTML ຈາກຄອສຮຽນ ແລະ ເປີດໃຊ້ CSP</div>
+        <div>ເວັບອື່ນບໍ່ສາມາດແຍ່ງການເຊື່ອມຕໍ່ຂອງ extension</div>
+        <div>ບໍ່ມີ telemetry ແລະ ບໍ່ສົ່ງຂໍ້ມູນການດາວອອກນອກເຄື່ອງ</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="faq">
+    <div class="wrap">
+      <h2>ຄຳຖາມທີ່ພົບເລື້ອຍ</h2>
+      <details><summary>ຟຣີແທ້ບໍ່?</summary><p>ຟຣີ ແລະ ເປີດໂຄດທັງໝົດ ພາຍໃຕ້ license GPL-3.0. ບໍ່ມີໂຄສະນາ ແລະ ບໍ່ມີແພັກເກັດເສຍເງິນ.</p></details>
+      <details><summary>ຕ່າງຈາກ OmniGet ສະບັບຕົ້ນແນວໃດ?</summary><p>ມີພາສາລາວຄົບທຸກໜ້າ, ຟອນລາວ, ການຖອດສຽງພາສາລາວ ແລະ ການແກ້ໄຂດ້ານຄວາມປອດໄພ. ການອັບເດດຈະມາຈາກ repo ນີ້ ຈຶ່ງຍັງເປັນພາສາລາວຫຼັງອັບເດດ.</p></details>
+      <details><summary>ດາວວິດີໂອຂອງຄົນອື່ນຖືກກົດໝາຍບໍ່?</summary><p>ຂຶ້ນກັບເນື້ອຫາ ແລະ ຂໍ້ກຳນົດຂອງແຕ່ລະເວັບ. ໃຫ້ດາວສະເພາະເນື້ອຫາທີ່ທ່ານມີສິດ ເຊັ່ນ ວິດີໂອຂອງຕົນເອງ, ຄອສທີ່ຊື້ແລ້ວ ຫຼື ເນື້ອຫາທີ່ອະນຸຍາດໃຫ້ດາວ. OmniGet ບໍ່ປົດລັອກ DRM.</p></details>
+      <details><summary>ຕ້ອງໃຊ້ browser extension ບໍ່?</summary><p>ບໍ່ຈຳເປັນ. Extension ຊ່ວຍດາວເນື້ອຫາທີ່ຕ້ອງລັອກອິນ. ຖ້າຕິດຕັ້ງ, ແນະນຳໃຫ້ໃຊ້ໃນ browser ທີ່ບໍ່ໄດ້ລັອກອິນບັນຊີສຳຄັນ.</p></details>
+      <details><summary>ພົບຄຳແປຜິດ ຫຼື ບັກ ຈະແຈ້ງໃສ?</summary><p>ເປີດ <a href="https://github.com/shiroesneo-99/OmniGet-Laos/issues">Issue ໃນ GitHub</a> ຫຼື ແກ້ໄຟລ໌ <code>src/lib/i18n/lo.json</code> ແລ້ວສົ່ງ Pull Request.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>OmniGet ລາວ · GPL-3.0 · ພັດທະນາຕໍ່ຈາກ <a href="https://github.com/tonhowtf/omniget">tonhowtf/omniget</a></span>
+    <span><a href="https://github.com/shiroesneo-99/OmniGet-Laos">ໂຄດ</a> · <a href="https://github.com/shiroesneo-99/OmniGet-Laos/releases">Releases</a> · <a href="https://github.com/shiroesneo-99/OmniGet-Laos/issues">ແຈ້ງບັນຫາ</a></span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const REPO = "shiroesneo-99/OmniGet-Laos";
+  const RELEASES = `https://github.com/${REPO}/releases`;
+
+  const ua = navigator.userAgent;
+  const os = /Windows/i.test(ua) ? "windows" : /Mac/i.test(ua) ? "mac" : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? "linux" : "windows";
+  const osName = { windows: "Windows", mac: "macOS", linux: "Linux" };
+  document.getElementById("main-dl-label").textContent = `ດາວໂຫຼດສຳລັບ ${osName[os]}`;
+  document.querySelector(`.platform[data-os="${os}"]`).classList.add("rec");
+  document.querySelector(`.platform[data-os="${os}"] h3`).insertAdjacentHTML("beforeend", ' <span class="tag">ເຄື່ອງນີ້</span>');
+
+  // [os, matcher, label, preferred-for-main-button]
+  const KINDS = [
+    ["windows", /_x64-setup\.exe$/, "ຕົວຕິດຕັ້ງ (.exe)", true],
+    ["windows", /_x64-portable\.exe$/, "ແບບພົກພາ (ບໍ່ຕ້ອງຕິດຕັ້ງ)"],
+    ["windows", /_x64_.*\.msi$/, "MSI"],
+    ["mac", /_aarch64\.dmg$/, "Apple Silicon (M1–M4)", true],
+    ["mac", /_x64\.dmg$/, "Intel"],
+    ["linux", /_amd64\.AppImage$/, "AppImage (x64)", true],
+    ["linux", /_amd64\.deb$/, "Debian / Ubuntu (.deb)"],
+    ["linux", /\.x86_64\.rpm$/, "Fedora / openSUSE (.rpm)"],
+    ["linux", /_aarch64\.AppImage$/, "AppImage (ARM64)"],
+  ];
+
+  const mb = (n) => `${(n / 1048576).toFixed(0)} MB`;
+  const setSub = (html) => { document.getElementById("dl-sub").innerHTML = html; };
+
+  function noRelease() {
+    setSub(`ກຳລັງກຽມເວີຊັນທຳອິດ. ຕິດຕາມໄດ້ທີ່ <a href="${RELEASES}">ໜ້າ Releases</a>.`);
+    document.querySelectorAll(".platform ul").forEach((ul) => {
+      ul.outerHTML = `<p class="none">ຍັງບໍ່ມີໄຟລ໌ — <a href="${RELEASES}">ເບິ່ງ Releases</a></p>`;
+    });
+  }
+
+  fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((rel) => {
+      const assets = (rel.assets || []).filter((a) => !a.name.endsWith(".sig") && !a.name.endsWith(".zsync"));
+      const date = new Date(rel.published_at).toLocaleDateString("lo-LA", { year: "numeric", month: "long", day: "numeric" });
+      document.getElementById("release-meta").innerHTML = `ເວີຊັນລ່າສຸດ <b>${rel.tag_name}</b> · ${date}`;
+      setSub(`ເວີຊັນ <b>${rel.tag_name}</b> · <a href="${rel.html_url}">ລາຍລະອຽດການປ່ຽນແປງ</a>`);
+
+      const lists = {};
+      document.querySelectorAll(".platform").forEach((p) => { lists[p.dataset.os] = p.querySelector("ul"); });
+      let any = false;
+      for (const [kos, re, label, main] of KINDS) {
+        const a = assets.find((x) => re.test(x.name));
+        if (!a) continue;
+        any = true;
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = a.browser_download_url;
+        link.innerHTML = `<span></span><small>${mb(a.size)}</small>`;
+        link.firstChild.textContent = label;
+        li.append(link);
+        lists[kos].append(li);
+        if (main && kos === os) document.getElementById("main-dl").href = a.browser_download_url;
+      }
+      document.querySelectorAll(".platform ul").forEach((ul) => {
+        if (!ul.children.length) ul.outerHTML = `<p class="none">ບໍ່ມີໃນເວີຊັນນີ້ — <a href="${rel.html_url}">ເບິ່ງໄຟລ໌ທັງໝົດ</a></p>`;
+      });
+      if (!any) noRelease();
+    })
+    .catch(noRelease);
+})();
+</script>
+</body>
+</html>
