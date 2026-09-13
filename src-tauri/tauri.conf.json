@@ -55,9 +55,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYyOTlEMzE0MUJDMkREMTkKUldRWjNjSWJGTk9aWWtnazV5aTdTNTZ4dk93TVh3cUpxSWlpclRXNjlwYXA1ZXdrdlZsYUxQYzkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEEyRDQ3MkEyNzQwM0QyM0IKUldRNzBnTjBvbkxVb3R6YmNheHNEbWNGZktST0k4dmVEZ1h2dE9mUGtSMityVHJPNmpPK2dEaWYK",
       "endpoints": [
-        "https://github.com/tonhowtf/omniget/releases/latest/download/latest.json"
+        "https://github.com/shiroesneo-99/OmniGet-Laos/releases/latest/download/latest.json"
       ]
     },
     "deep-link": {
