@@ -119,6 +119,66 @@ async fn translate_batch_llm(
     Err(anyhow!("tradução por IA falhou: {}", last_err))
 }
 
+/// LibreTranslate (Argos) has no model for some languages we offer in the UI
+/// (notably Lao). Checks the target (and the source, when given) against the
+/// server's `/languages` before starting, so the job fails early with a clear
+/// message instead of aborting at the first batch with HTTP 400. If the list
+/// can't be fetched we don't block: the batch error still surfaces.
+async fn check_libre_languages(
+    base_url: &str,
+    api_key: &str,
+    opts: &TranslateOptions,
+) -> anyhow::Result<()> {
+    let client = super::client()?;
+    let mut url = format!("{}/languages", base_url.trim_end_matches('/'));
+    if !api_key.is_empty() {
+        url.push_str(&format!("?api_key={}", urlencoding::encode(api_key)));
+    }
+    let langs: serde_json::Value = match client.get(&url).send().await {
+        Ok(r) if r.status().is_success() => match r.json().await {
+            Ok(v) => v,
+            Err(_) => return Ok(()),
+        },
+        _ => return Ok(()),
+    };
+    libre_support_error(&langs, &opts.source_lang, &opts.target_lang)
+        .map_or(Ok(()), |msg| Err(anyhow!(msg)))
+}
+
+fn libre_unsupported(lang: &str) -> String {
+    format!(
+        "LibreTranslate doesn't support target language '{}' — choose the AI engine instead",
+        lang
+    )
+}
+
+/// Returns an error message if `/languages` (`[{code, targets}]`) shows the
+/// pair can't be translated.
+fn libre_support_error(langs: &serde_json::Value, source: &str, target: &str) -> Option<String> {
+    let arr = langs.as_array()?;
+    if arr.is_empty() {
+        return None;
+    }
+    let code_of = |l: &serde_json::Value| l["code"].as_str().unwrap_or("").to_string();
+    if !arr.iter().any(|l| code_of(l) == target) {
+        return Some(libre_unsupported(target));
+    }
+    if !source.is_empty() && source != "auto" {
+        let Some(src) = arr.iter().find(|l| code_of(l) == source) else {
+            return Some(format!(
+                "LibreTranslate doesn't support source language '{}' — choose the AI engine instead",
+                source
+            ));
+        };
+        if let Some(targets) = src["targets"].as_array() {
+            if !targets.iter().any(|t| t.as_str() == Some(target)) {
+                return Some(libre_unsupported(target));
+            }
+        }
+    }
+    None
+}
+
 async fn translate_batch_libre(
     lines: &[&str],
     base_url: &str,
@@ -143,6 +203,14 @@ async fn translate_batch_libre(
         .await
         .map_err(|e| anyhow!("LibreTranslate: resposta invalida ({})", e))?;
     if !status.is_success() {
+        let msg = v["error"].as_str().unwrap_or("");
+        if status.as_u16() == 400 && msg.to_ascii_lowercase().contains("not supported") {
+            return Err(anyhow!(
+                "{} ({})",
+                libre_unsupported(&opts.target_lang),
+                msg
+            ));
+        }
         return Err(anyhow!(
             "LibreTranslate: HTTP {} {}",
             status.as_u16(),
@@ -171,6 +239,9 @@ pub async fn translate_cues(
     let mut failed = Vec::new();
     let total = cues.len() as u64;
     let mut done = 0u64;
+    if let Translator::LibreTranslate { base_url, api_key } = &opts.translator {
+        check_libre_languages(base_url, api_key, opts).await?;
+    }
     for (bi, chunk) in cues.chunks(batch).enumerate() {
         let lines: Vec<&str> = chunk.iter().map(|c| c.text.as_str()).collect();
         let start = bi * batch;
@@ -213,5 +284,21 @@ mod tests {
         let p = parse_llm_json(t, 2).unwrap();
         assert_eq!(p[0].as_deref(), Some("Olá"));
         assert_eq!(p[1].as_deref(), Some("Mundo"));
+    }
+
+    #[test]
+    fn libre_rejects_unsupported_target_early() {
+        let langs = serde_json::json!([
+            {"code": "en", "name": "English", "targets": ["en", "th", "vi"]},
+            {"code": "th", "name": "Thai", "targets": ["en", "th"]},
+            {"code": "vi", "name": "Vietnamese", "targets": ["en", "vi"]},
+        ]);
+        let e = libre_support_error(&langs, "", "lo").unwrap();
+        assert!(e.contains("'lo'"), "{e}");
+        assert!(libre_support_error(&langs, "auto", "th").is_none());
+        assert!(libre_support_error(&langs, "en", "vi").is_none());
+        assert!(libre_support_error(&langs, "th", "vi").is_some());
+        assert!(libre_support_error(&langs, "lo", "en").is_some());
+        assert!(libre_support_error(&serde_json::json!([]), "", "lo").is_none());
     }
 }

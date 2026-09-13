@@ -55,6 +55,15 @@
   }
 
   const LANGS = ["pt", "en", "es", "fr", "de", "it", "ja", "ko", "zh", "ru", "ar", "hi", "nl", "pl", "tr", "lo", "th", "vi"];
+  // LibreTranslate/Argos has no Lao model; the backend also checks the server's /languages.
+  const LIBRE_UNSUPPORTED = new Set(["lo"]);
+  let langs = $derived(kind === "libre_translate" ? LANGS.filter((l) => !LIBRE_UNSUPPORTED.has(l)) : LANGS);
+  $effect(() => {
+    if (kind === "libre_translate") {
+      if (LIBRE_UNSUPPORTED.has(target)) target = "en";
+      if (LIBRE_UNSUPPORTED.has(source)) source = "auto";
+    }
+  });
 </script>
 
 <div class="tool">
@@ -71,9 +80,9 @@
       <div class="group-row">
         <div class="group-row-content"><div class="group-row-title">{$t("tools.srtt.from_to")}</div></div>
         <div class="group-row-trailing btn-row">
-          <select class="input" bind:value={source}><option value="auto">auto</option>{#each LANGS as l (l)}<option value={l}>{l}</option>{/each}</select>
+          <select class="input" bind:value={source}><option value="auto">auto</option>{#each langs as l (l)}<option value={l}>{l}</option>{/each}</select>
           <span>→</span>
-          <select class="input" bind:value={target}>{#each LANGS as l (l)}<option value={l}>{l}</option>{/each}</select>
+          <select class="input" bind:value={target}>{#each langs as l (l)}<option value={l}>{l}</option>{/each}</select>
         </div>
       </div>
       <div class="group-row">
