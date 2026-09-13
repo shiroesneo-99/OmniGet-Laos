@@ -15,6 +15,8 @@ on:
 
 jobs:
   homebrew:
+    # Only the upstream repo owns the Homebrew tap; skip on forks.
+    if: github.repository == 'tonhowtf/omniget'
     runs-on: ubuntu-latest
     steps:
       - name: Skip without token

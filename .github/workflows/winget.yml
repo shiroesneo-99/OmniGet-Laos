@@ -16,6 +16,8 @@ on:
 
 jobs:
   winget:
+    # Only the upstream repo owns the winget package; forks must not submit PRs to it.
+    if: github.repository == 'tonhowtf/omniget'
     runs-on: windows-latest
     steps:
       - name: Submit manifest update
