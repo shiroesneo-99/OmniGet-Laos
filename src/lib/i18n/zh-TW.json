@@ -4096,6 +4096,7 @@
       "display_label": "Display",
       "body_label": "Body",
       "mono_label": "Mono",
+      "lao_label": "Lao script",
       "body_sample": "敏捷的棕色狐狸",
       "line_height_label": "行高",
       "line_height_desc": "行間垂直間距。值越大越寬鬆,長時間閱讀更輕鬆。",

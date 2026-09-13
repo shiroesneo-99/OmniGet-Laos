@@ -572,6 +572,14 @@ pub struct TypographySettings {
     pub spacing_scale: f32,
     #[serde(default)]
     pub preset_name: Option<String>,
+    /// Face used only for Lao script: "Noto Serif Lao", "Noto Sans Lao",
+    /// "Phetsarath OT" (system-installed) or "system-ui".
+    #[serde(default = "default_font_lao")]
+    pub font_lao: String,
+}
+
+fn default_font_lao() -> String {
+    "Noto Serif Lao".into()
 }
 
 fn default_font_display() -> String {
@@ -638,6 +646,7 @@ impl Default for TypographySettings {
             line_height_base: default_line_height_base(),
             spacing_scale: default_spacing_scale(),
             preset_name: Some("omniget-default".into()),
+            font_lao: default_font_lao(),
         }
     }
 }

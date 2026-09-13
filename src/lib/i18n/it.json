@@ -4096,6 +4096,7 @@
       "display_label": "Display",
       "body_label": "Body",
       "mono_label": "Mono",
+      "lao_label": "Lao script",
       "body_sample": "Ma la volpe col suo balzo",
       "line_height_label": "Line-height",
       "line_height_desc": "Spazio verticale tra le righe. Maggiore = più arioso, più facile da leggere in sessioni lunghe.",

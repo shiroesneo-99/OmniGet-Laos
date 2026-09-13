@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     getSettings,
+    laoFontPrefix,
     updateSettings,
     type TypographySettings,
   } from "$lib/stores/settings-store.svelte";
@@ -126,8 +127,16 @@
     return `'${option.value}', ui-sans-serif, system-ui, sans-serif`;
   }
 
+  const LAO_FONT_OPTIONS: FontOption[] = [
+    { value: "Noto Serif Lao", label: "Noto Serif Lao", family: "any", bundled: true },
+    { value: "Noto Sans Lao", label: "Noto Sans Lao", family: "any", bundled: true },
+    { value: "Phetsarath OT", label: "Phetsarath OT", family: "any", bundled: false },
+    { value: "system-ui", label: "System default", family: "any", bundled: false },
+  ];
+
   async function applyPreset(preset: Preset) {
-    await updateSettings({ typography: preset.values });
+    // Presets only describe Latin fonts; keep the user's Lao face.
+    await updateSettings({ typography: { ...preset.values, font_lao: typo.font_lao } });
   }
 
   async function patchTypo(patch: Partial<TypographySettings>) {
@@ -153,6 +162,12 @@
   async function changeMono(e: Event) {
     const value = (e.target as HTMLSelectElement).value;
     await patchTypo({ font_mono: value });
+  }
+
+  async function changeLao(e: Event) {
+    const value = (e.target as HTMLSelectElement).value;
+    // Not part of presets, so changing it must not clear preset_name.
+    await updateSettings({ typography: { ...typo, font_lao: value } });
   }
 
   async function changeLineHeight(e: Event) {
@@ -285,6 +300,23 @@
           style:font-family="{previewFontStack({ value: typo.font_mono, label: '', family: 'mono', bundled: true })}"
         >
           {`const x = 42;`}
+        </span>
+      </div>
+
+      <div class="font-row">
+        <label class="font-field">
+          <span class="font-label">{$t("settings.typography.lao_label")}</span>
+          <select value={typo.font_lao ?? "Noto Serif Lao"} onchange={changeLao}>
+            {#each LAO_FONT_OPTIONS as opt (opt.value)}
+              <option value={opt.value}>{opt.label}{opt.bundled ? "" : ` (${$t("settings.dependencies.system_font_suffix")})`}</option>
+            {/each}
+          </select>
+        </label>
+        <span
+          class="font-sample"
+          style:font-family="{laoFontPrefix(typo.font_lao)}system-ui, sans-serif"
+        >
+          ສະບາຍດີ ພາສາລາວ ໑໒໓
         </span>
       </div>
     </div>

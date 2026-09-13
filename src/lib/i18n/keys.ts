@@ -2518,6 +2518,7 @@ export type TranslationKeys =
   | 'settings.typography.display_label'
   | 'settings.typography.fonts_desc'
   | 'settings.typography.fonts_title'
+  | 'settings.typography.lao_label'
   | 'settings.typography.line_height_desc'
   | 'settings.typography.line_height_label'
   | 'settings.typography.modified_indicator'

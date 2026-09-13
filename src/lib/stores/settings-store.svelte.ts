@@ -155,6 +155,8 @@ export type TypographySettings = {
   line_height_base: number;
   spacing_scale: number;
   preset_name: string | null;
+  // Face used for Lao script only; optional so settings saved before it existed still load.
+  font_lao?: string;
 };
 
 const TYPOGRAPHY_DEFAULTS: TypographySettings = {
@@ -164,7 +166,22 @@ const TYPOGRAPHY_DEFAULTS: TypographySettings = {
   line_height_base: 1.55,
   spacing_scale: 1.0,
   preset_name: "system",
+  font_lao: "Noto Serif Lao",
 };
+
+// Each alias is a unicode-range limited @font-face in app.css, so it only affects Lao glyphs.
+export function laoFontPrefix(fontLao: string | undefined): string {
+  switch ((fontLao ?? "Noto Serif Lao").trim()) {
+    case "Noto Sans Lao":
+      return "'OmniGet Lao Sans', ";
+    case "Phetsarath OT":
+      return "'OmniGet Lao Phetsarath', 'OmniGet Lao', ";
+    case "system-ui":
+      return "";
+    default:
+      return "'OmniGet Lao', ";
+  }
+}
 
 const SPACING_BASE_PX: Record<string, number> = {
   "--space-1": 4,
@@ -236,9 +253,9 @@ function applyTypography(typo: TypographySettings | undefined) {
   if (typeof document === "undefined") return;
   const t = typo ?? TYPOGRAPHY_DEFAULTS;
   const root = document.documentElement.style;
-  // 'OmniGet Lao' is unicode-range limited to Lao, so it only affects Lao glyphs.
-  root.setProperty("--font-display", `'OmniGet Lao', ${fontStack(t.font_display)}`);
-  root.setProperty("--font-body", `'OmniGet Lao', ${bodyFontStack(t.font_body)}`);
+  const lao = laoFontPrefix(t.font_lao);
+  root.setProperty("--font-display", `${lao}${fontStack(t.font_display)}`);
+  root.setProperty("--font-body", `${lao}${bodyFontStack(t.font_body)}`);
   root.setProperty("--font-mono", monoFontStack(t.font_mono));
   root.setProperty("--leading-base", String(t.line_height_base));
   const scale = typeof t.spacing_scale === "number" ? t.spacing_scale : 1.0;

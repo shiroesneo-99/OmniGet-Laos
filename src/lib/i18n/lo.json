@@ -4096,6 +4096,7 @@
       "display_label": "ຫົວຂໍ້",
       "body_label": "ເນື້ອຫາ",
       "mono_label": "Mono",
+      "lao_label": "ຕົວອັກສອນລາວ",
       "body_sample": "The quick brown fox",
       "line_height_label": "ໄລຍະຫ່າງແຖວ",
       "line_height_desc": "ພື້ນທີ່ແນວຕັ້ງລະຫວ່າງແຖວ. ສູງຂຶ້ນ = ໂປ່ງກວ່າ, ອ່ານງ່າຍກວ່າເມື່ອໃຊ້ດົນ.",
