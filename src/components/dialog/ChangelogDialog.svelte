@@ -90,9 +90,10 @@
     let result = escapeHtml(str);
     result = result.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     result = result.replace(/`(.+?)`/g, "<code>$1</code>");
-    result = result.replace(
-      /\[(.+?)\]\((.+?)\)/g,
-      '<a href="$2" target="_blank" rel="noopener">$1</a>'
+    result = result.replace(/\[(.+?)\]\((.+?)\)/g, (match, label, href) =>
+      /^https?:\/\//i.test(href)
+        ? `<a href="${href}" target="_blank" rel="noopener">${label}</a>`
+        : match
     );
     return result;
   }
