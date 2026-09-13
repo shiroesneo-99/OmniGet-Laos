@@ -54,7 +54,7 @@
     }
   }
 
-  const LANGS = ["pt", "en", "es", "fr", "de", "it", "ja", "ko", "zh", "ru", "ar", "hi", "nl", "pl", "tr"];
+  const LANGS = ["pt", "en", "es", "fr", "de", "it", "ja", "ko", "zh", "ru", "ar", "hi", "nl", "pl", "tr", "lo", "th", "vi"];
 </script>
 
 <div class="tool">

@@ -88,7 +88,7 @@
   });
   onDestroy(() => unlisten?.());
 
-  const LANGS = ["auto", "pt", "en", "es", "fr", "de", "it", "ja", "ko", "zh", "ru", "ar", "hi"];
+  const LANGS = ["auto", "pt", "en", "es", "fr", "de", "it", "ja", "ko", "zh", "ru", "ar", "hi", "lo", "th", "vi"];
 </script>
 
 <div class="tool">
