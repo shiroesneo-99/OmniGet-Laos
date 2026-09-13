@@ -44,9 +44,32 @@
         "enable": true,
         "scope": {
           "allow": [
-            "**"
+            "$APPDATA/**",
+            "$APPCACHE/**",
+            "$DOWNLOAD/**",
+            "$VIDEO/**",
+            "$AUDIO/**",
+            "$PICTURE/**",
+            "$DOCUMENT/**"
           ],
-          "deny": [],
+          "deny": [
+            "$APPDATA/settings.json",
+            "$APPDATA/cookies/**",
+            "$APPDATA/chrome-extension-cookies.txt",
+            "$APPDATA/chrome-native-host/**",
+            "**/*.db",
+            "**/*.db-wal",
+            "**/*.db-shm",
+            "**/*.sqlite",
+            "**/*.sqlite3",
+            "**/*.session",
+            "**/.ssh/**",
+            "**/.gnupg/**",
+            "**/.aws/**",
+            "**/Cookies",
+            "**/Login Data",
+            "**/Local State"
+          ],
           "requireLiteralLeadingDot": false
         }
       }

@@ -222,6 +222,7 @@ pub fn get_plugin_i18n(
 
 #[tauri::command]
 pub async fn plugin_command(
+    app: tauri::AppHandle,
     state: tauri::State<'_, Arc<tokio::sync::RwLock<PluginManager>>>,
     plugin_id: String,
     command: String,
@@ -231,6 +232,11 @@ pub async fn plugin_command(
     manager
         .handle_command(&plugin_id, &command, args)
         .await
+        .inspect(|value| {
+            // Local files a plugin hands back are previewed through the asset
+            // protocol (convertFileSrc); allow their folders at runtime.
+            crate::asset_scope::allow_from_plugin_result(&app, &command, value);
+        })
         .map_err(|e| {
             // Issue #193: a loaded but outdated plugin DLL answers "Unknown
             // command"/"Command X not found" when the (newer) frontend calls a

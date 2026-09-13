@@ -11,6 +11,7 @@ pub struct P2pSendHandle {
 }
 pub type ActiveP2pSends = Arc<tokio::sync::Mutex<HashMap<String, P2pSendHandle>>>;
 
+pub mod asset_scope;
 pub mod commands;
 pub mod cookies;
 pub mod core;
@@ -326,6 +327,15 @@ pub fn run() {
             None,
         ))
         .setup(|app| {
+            // Before the window exists: the frontend restores media (e.g. the
+            // music queue) through the asset protocol as soon as it loads.
+            asset_scope::init(
+                app.handle(),
+                &storage::config::load_settings(app.handle())
+                    .download
+                    .default_output_dir,
+            );
+
             // A janela principal e criada aqui, e nao pelo `tauri.conf.json`
             // (`"create": false`), porque so daqui da para passar
             // `.data_directory(...)` ao WebView2. O Tauri resolve esse caminho

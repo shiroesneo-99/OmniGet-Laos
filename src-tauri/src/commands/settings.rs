@@ -28,6 +28,10 @@ pub fn update_settings(app: tauri::AppHandle, partial: String) -> Result<AppSett
     current = serde_json::from_value(current_val).map_err(|e| format!("Deserialize: {}", e))?;
     config::save_settings(&app, &current).map_err(|e| format!("Save: {}", e))?;
 
+    if current.download.default_output_dir.is_absolute() {
+        crate::asset_scope::allow_user_dir(&app, &current.download.default_output_dir);
+    }
+
     crate::core::http_client::init_proxy(current.proxy.clone());
     crate::core::http_fetcher::set_global_max_concurrent_segments(
         current.advanced.max_concurrent_segments as usize,
