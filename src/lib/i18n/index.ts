@@ -75,7 +75,9 @@ const config = {
   ],
 };
 
-export const defaultLocale = "en";
+// OmniGet-Laos: used when settings can't be read. English stays the
+// bundled initLocale/fallback above, so a failed Lao load still shows text.
+export const defaultLocale = "lo";
 
 export const RTL_LOCALES = ["fa", "ar", "he"];
 

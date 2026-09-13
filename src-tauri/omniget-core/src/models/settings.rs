@@ -657,7 +657,9 @@ impl Default for AppSettings {
             schema_version: 1,
             appearance: AppearanceSettings {
                 theme: "system".into(),
-                language: "en".into(),
+                // OmniGet-Laos: fresh installs start in Lao. Saved settings keep
+                // whatever language they already have.
+                language: "lo".into(),
             },
             download: DownloadSettings {
                 default_output_dir: dirs::download_dir().unwrap_or_else(|| PathBuf::from(".")),
@@ -840,6 +842,16 @@ mod backcompat_tests {
             serde_json::from_value(anterior).expect("arquivo sem `plugins` tem que abrir");
         assert!(!parsed.plugins.auto_install_defaults);
         assert!(!parsed.plugins.auto_update);
+    }
+
+    #[test]
+    fn idioma_padrao_e_lao_mas_o_salvo_prevalece() {
+        assert_eq!(AppSettings::default().appearance.language, "lo");
+
+        let mut salvo = serde_json::to_value(AppSettings::default()).expect("serializa");
+        salvo["appearance"]["language"] = serde_json::json!("en");
+        let parsed: AppSettings = serde_json::from_value(salvo).expect("abre");
+        assert_eq!(parsed.appearance.language, "en");
     }
 
     #[test]
